@@ -1,7 +1,13 @@
+import os, sys
+sys.path.append(os.path.abspath("./Common"))
+
 from dotenv import load_dotenv
 
 load_dotenv()
 
-import assistant
+import client
 
-assistant.test()
+clt = client.Connection()
+clt.connect("localhost", 1234, "password")
+clt.sendstr("Hello, world!")
+print(clt.recvstr())
