@@ -1,5 +1,5 @@
 # 2023F CoE202 Final Project
-## Structure
+## 프로젝트 구조
 - **Client:** 마이크가 설치된 Device입니다. 사용자의 음성을 인식, 분석한 뒤, 로봇이 수행해야 할 명령을 Server로 전송합니다.
 - **Server:** MODI와 연결된 Device입니다. 주변 환경을 인식하고, 사용자의 명령을 수행합니다.
 
