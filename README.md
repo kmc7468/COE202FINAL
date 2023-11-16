@@ -1,4 +1,4 @@
-# 2023F COE202 Final Project
+# 2023F CoE202 Final Project
 ## git 사용법
 ### 초기 세팅
 ```
@@ -17,3 +17,8 @@ git push
 ```
 git pull
 ```
+
+## 역할 분담
+- **승윤:** Image processing
+- **민찬:** Voice recognition
+- **민성:** Motor motion (Embedded programming MODI)
