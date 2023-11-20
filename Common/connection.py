@@ -12,15 +12,22 @@ class Connection:
 	def _setsocket(self, socket: socket):
 		self.__socket = socket
 
+	def _getcipher(self):
+		return self.__cipher
+
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
+
+	def _setrandom(self, sendrand, recvrand):
+		self.__sendrand = sendrand
+		self.__recvrand = recvrand
 
 	def sendstr(self, string: str):
 		self._send(string.encode("utf-8"))
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:
-			self._send(self._encrypt(data), encrypt=False)
+			self._send(self.__encrypt(data), encrypt=False)
 		else:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
@@ -33,7 +40,7 @@ class Connection:
 		data = self.__recvraw(size)
 
 		if decrypt:
-			return self._decrypt(data)
+			return self.__decrypt(data)
 		else:
 			return data
 
@@ -45,8 +52,12 @@ class Connection:
 
 		return data
 
-	def _encrypt(self, data: bytes) -> bytes:
-		return self.__cipher.encrypt(data)
+	def __encrypt(self, data: bytes) -> bytes:
+		return self.__cipher.encrypt(data + self.__sendrand.randint(0, 255).to_bytes(1, "big"))
 
-	def _decrypt(self, edata: bytes) -> bytes:
-		return self.__cipher.decrypt(edata)
+	def __decrypt(self, edata: bytes) -> bytes:
+		data = self.__cipher.decrypt(edata)
+		if data[-1] != self.__recvrand.randint(0, 255):
+			raise Exception("Decryption failed")
+
+		return data[0:-1]

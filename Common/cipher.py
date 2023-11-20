@@ -10,8 +10,12 @@ class AES256Cipher:
 		if type(key) is str:
 			mykey = hashlib.sha256(key.encode("utf-8")).digest()
 
+		self.__iv = iv
 		self.__cipher = AES.new(mykey, AES.MODE_CBC, iv)
 		self.__decipher = AES.new(mykey, AES.MODE_CBC, iv)
+
+	def getiv(self) -> bytes:
+		return self.__iv
 
 	def encrypt(self, data: bytes) -> bytes:
 		return self.__cipher.encrypt(self.__pad(data))

@@ -1,6 +1,7 @@
 import cipher
 import connection
 import socket
+import random
 
 class Connection(connection.Connection):
 	def connect(self, host: str, port: int, password: str):
@@ -13,14 +14,16 @@ class Connection(connection.Connection):
 	def __handshake(self, password: str):
 		iv = self._recv(decrypt=False)
 		mycipher = cipher.AES256Cipher(password, iv)
-		self._setcipher(mycipher)
 
-		tempkey = self._recv(decrypt=False)
-		tempcipher = cipher.AES256Cipher(tempkey, iv)
+		serverseed = mycipher.decrypt(self._recv(decrypt=False))
+		clientseed = mycipher.decrypt(self._recv(decrypt=False))
 
-		problem = self._decrypt(self._recv(decrypt=False))
-		self._send(tempcipher.encrypt(problem), encrypt=False)
+		answer = bytes([(a + b) % 256 for a, b in zip(serverseed, clientseed)])
+		self._send(mycipher.encrypt(answer), encrypt=False)
 
 		result = self._recv(decrypt=False)
-		if result != b"OK":
+		if result == b"OK":
+			self._setcipher(mycipher)
+			self._setrandom(random.Random(clientseed), random.Random(serverseed))
+		else:
 			raise Exception("Handshake failed")

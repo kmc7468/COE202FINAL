@@ -11,5 +11,9 @@ import server
 
 srv = server.Connection()
 srv.start("localhost", 1234, "password")
+srv.accept()
+
 print(srv.recvstr())
-srv.sendstr("Bye, world!")
+print(srv.recvstr())
+srv.sendstr("Hello, world!")
+srv.sendstr("Hello, world!")

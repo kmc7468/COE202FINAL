@@ -1,5 +1,6 @@
 import cipher
 import connection
+import random
 import secrets
 import socket
 
@@ -16,13 +17,19 @@ class Connection(connection.Connection):
 
 		self.__serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.__serversocket.bind((host, port))
+
+		self.__serversocket.settimeout(1)
 		self.__serversocket.listen(1)
 
+	def accept(self):
 		while True:
-			clientsocket, clientaddr = self.__serversocket.accept()
-			self._setsocket(clientsocket)
+			try:
+				clientsocket, clientaddr = self.__serversocket.accept()
+				self._setsocket(clientsocket)
 
-			print(f"{clientaddr}가 접속을 시도했습니다.")
+				print(f"{clientaddr}가 접속을 시도했습니다.")
+			except socket.timeout:
+				continue
 
 			if self.__handshake():
 				print("Handshake에 성공했습니다.")
@@ -35,20 +42,22 @@ class Connection(connection.Connection):
 				print("Handshake에 실패했습니다.")
 
 	def __initcipher(self, password: str):
-		self.__iv = secrets.token_bytes(16)
-		self._setcipher(cipher.AES256Cipher(password, self.__iv))
+		self._setcipher(cipher.AES256Cipher(password, secrets.token_bytes(16)))
 
 	def __handshake(self) -> bool:
-		tempkey = secrets.token_bytes(32)
-		tempcipher = cipher.AES256Cipher(tempkey, self.__iv)
+		mycipher = self._getcipher()
+		self._send(mycipher.getiv(), encrypt=False)
 
-		problem = secrets.token_bytes(128)
-		self._send(self.__iv, encrypt=False)
-		self._send(tempkey, encrypt=False)
-		self._send(self._encrypt(problem), encrypt=False)
+		seedlen = random.randint(128, 256)
+		serverseed = secrets.token_bytes(seedlen)
+		clientseed = secrets.token_bytes(seedlen)
+		self._send(mycipher.encrypt(serverseed), encrypt=False)
+		self._send(mycipher.encrypt(clientseed), encrypt=False)
 
-		answer = tempcipher.decrypt(self._recv(decrypt=False))
-		if answer == problem:
+		problem = bytes([(a + b) % 256 for a, b in zip(serverseed, clientseed)])
+		answer = mycipher.decrypt(self._recv(decrypt=False))
+		if problem == answer:
+			self._setrandom(random.Random(serverseed), random.Random(clientseed))
 			self._send(b"OK", encrypt=False)
 
 			return True
