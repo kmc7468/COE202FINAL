@@ -1,29 +1,30 @@
 import cipher
 import connection
+import hashlib
 import socket
-import random
 
 class Connection(connection.Connection):
 	def connect(self, host: str, port: int, password: str):
 		mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		mysocket.connect((host, port))
+		mysocket.settimeout(1)
 
 		self._setsocket(mysocket)
-		self.__handshake(password)
+
+		if not self.__handshake(password):
+			mysocket.close()
+			self._setsocket(None)
+
+			raise Exception("Handshake failed")
 
 	def __handshake(self, password: str):
-		iv = self._recv(decrypt=False)
-		mycipher = cipher.AES256Cipher(password, iv)
+		mycipher = cipher.AES256Cipher(password, self._recv(decrypt=False))
+		problem = mycipher.decrypt(self._recv(decrypt=False))
 
-		serverseed = mycipher.decrypt(self._recv(decrypt=False))
-		clientseed = mycipher.decrypt(self._recv(decrypt=False))
+		self._send(hashlib.sha3_512(problem).digest(), encrypt=False)
 
-		answer = bytes([(a + b) % 256 for a, b in zip(serverseed, clientseed)])
-		self._send(mycipher.encrypt(answer), encrypt=False)
-
-		result = self._recv(decrypt=False)
-		if result == b"OK":
+		result = self._recv(decrypt=False) == b"OK"
+		if result:
 			self._setcipher(mycipher)
-			self._setrandom(random.Random(clientseed), random.Random(serverseed))
-		else:
-			raise Exception("Handshake failed")
+
+		return result

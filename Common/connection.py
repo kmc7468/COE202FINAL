@@ -2,7 +2,7 @@ import socket
 
 class Connection:
 	def __del__(self):
-		if hasattr(self, "__socket"):
+		if hasattr(self, "__socket") and self.__socket is not None:
 			self.__socket.close()
 			del self.__socket
 
@@ -17,10 +17,6 @@ class Connection:
 
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
-
-	def _setrandom(self, sendrand, recvrand):
-		self.__sendrand = sendrand
-		self.__recvrand = recvrand
 
 	def sendstr(self, string: str):
 		self._send(string.encode("utf-8"))
@@ -53,11 +49,7 @@ class Connection:
 		return data
 
 	def __encrypt(self, data: bytes) -> bytes:
-		return self.__cipher.encrypt(data + self.__sendrand.randint(0, 255).to_bytes(1, "big"))
+		return self.__cipher.encrypt(data)
 
 	def __decrypt(self, edata: bytes) -> bytes:
-		data = self.__cipher.decrypt(edata)
-		if data[-1] != self.__recvrand.randint(0, 255):
-			raise Exception("Decryption failed")
-
-		return data[0:-1]
+		return self.__cipher.decrypt(edata)
