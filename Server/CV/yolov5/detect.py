@@ -28,21 +28,28 @@ Usage - formats:
                                  yolov5s_paddle_model       # PaddlePaddle
 """
 
+from utils.torch_utils import select_device, smart_inference_mode
+from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
+                           increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
+from utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
+from models.common import DetectMultiBackend
+from ultralytics.utils.plotting import Annotator, colors, save_one_box
 import argparse
 import csv
 import os
 import platform
 import sys
 from pathlib import Path
+import time
 
 import numpy as np
 import cv2
 
 # def get_limits(color):
-    
+
 #     c = np.uint8([[color]])
 #     hsvC = cv2.cvtColor(c, cv2.COLOR_BGR2HSV)
-    
+
 #     lowerLimit = hsvC[0][0][0] - 10, 100, 100
 #     upperLimit = hsvC[0][0][0] + 10, 255, 255
 
@@ -50,8 +57,6 @@ import cv2
 #     upperLimit = np.array(upperLimit, dtype=np.uint8)
 
 #     return lowerLimit, upperLimit
-
-
 
 
 import torch
@@ -62,13 +67,6 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
-
-from models.common import DetectMultiBackend
-from utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
-from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
-                           increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
-from utils.torch_utils import select_device, smart_inference_mode
 
 @smart_inference_mode()
 def run(
@@ -191,13 +189,24 @@ def run(
                 for c in det[:, 5].unique():
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
-
+                    
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
+
                     c = int(cls)  # integer class
                     label = names[c] if hide_conf else f'{names[c]}'
                     confidence = float(conf)
                     confidence_str = f'{confidence:.2f}'
+
+                    if int(time.time()) % 4 == 0:
+                        # print(float(xyxy[0]))
+                        # print(float(xyxy[1]))
+                        # print(float(xyxy[2]))
+                        # print(float(xyxy[3]))
+                        firstPoint = (float(xyxy[0]), float(xyxy[1]))
+                        secondPoint = (float(xyxy[2]), float(xyxy[2]))
+                        midPoint = (firstPoint[0]+secondPoint[0]//2, firstPoint[1]+secondPoint[1]//2)
+                        print(midPoint)
 
                     if save_csv:
                         write_to_csv(p.name, label, confidence_str)
