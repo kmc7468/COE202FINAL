@@ -6,12 +6,7 @@
 ## 초기 설정 방법
 ```
 git clone https://github.com/kmc7468/COE202FINAL.git
-cd COE202FINAL
-cd Client
-pip install dotenv openai
-cd ../Server
-pip install dotenv
-cd ..
+pip install -r requirements.txt
 ```
 최초 1회만 하면 됩니다.
 
