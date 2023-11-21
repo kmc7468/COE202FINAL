@@ -1,4 +1,6 @@
 import socket
+import threading
+from typing import Callable
 
 class Connection:
 	def __del__(self):
@@ -27,6 +29,18 @@ class Connection:
 		else:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
+
+	def startrecvstr(self, callback: Callable[[str], None]):
+		thread = threading.Thread(target=self.__recvloop, args=(callback,))
+		thread.daemon = True
+		thread.start()
+
+	def __recvloop(self, callback: Callable[[str], None]):
+		while True:
+			try:
+				callback(self.recvstr())
+			except TimeoutError:
+				continue
 
 	def recvstr(self) -> str:
 		return self._recv().decode("utf-8")

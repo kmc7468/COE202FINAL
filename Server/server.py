@@ -14,7 +14,7 @@ class Connection(connection.Connection):
 		super().__del__()
 
 	def start(self, host: str, port: int, password: str):
-		self.__initcipher(password)
+		self.__password = password
 
 		self.__serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.__serversocket.bind((host, port))
@@ -42,19 +42,21 @@ class Connection(connection.Connection):
 
 				print("Handshake에 실패했습니다.")
 
-	def __initcipher(self, password: str):
-		self._setcipher(cipher.AES256Cipher(password, secrets.token_bytes(16)))
-
 	def __handshake(self) -> bool:
 		try:
-			mycipher = self._getcipher()
+			iv = secrets.token_bytes(16)
+			mycipher = cipher.AES256Cipher(self.__password, iv)
 			problem = secrets.token_bytes(random.randint(256, 512))
 
-			self._send(mycipher.getiv(), encrypt=False)
+			self._send(iv, encrypt=False)
 			self._send(mycipher.encrypt(problem), encrypt=False)
 
 			result = self._recv(decrypt=False) == hashlib.sha3_512(problem).digest()
-			self._send(b"OK" if result else b"BYE", encrypt=False)
+			if result:
+				self._setcipher(mycipher)
+				self._send(b"OK", encrypt=False)
+			else:
+				self._send(b"BYE", encrypt=False)
 
 			return result
 		except:
