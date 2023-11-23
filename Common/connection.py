@@ -42,7 +42,6 @@ class Connection:
 			try:
 				callback(self.recvstr())
 			except TimeoutError:
-				print("timeout")
 				continue
 			except Exception:
 				raise
