@@ -30,17 +30,22 @@ class Connection:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
 
-	def startrecvstr(self, callback: Callable[[str], None]):
+	def startrecvstr(self, callback: Callable[[str], None]) -> threading.Thread:
 		thread = threading.Thread(target=self.__recvloop, args=(callback,))
 		thread.daemon = True
 		thread.start()
+
+		return thread
 
 	def __recvloop(self, callback: Callable[[str], None]):
 		while True:
 			try:
 				callback(self.recvstr())
 			except TimeoutError:
+				print("timeout")
 				continue
+			except Exception:
+				raise
 
 	def recvstr(self) -> str:
 		return self._recv().decode("utf-8")
