@@ -11,8 +11,8 @@ import server
 srv = server.Connection()
 
 addr = "localhost"
-port = int(os.getenv("port"))
-password = os.getenv("password")
+port = int(os.getenv("PORT"))
+password = os.getenv("PASSWORD")
 
 srv.start(addr, port, password)
 srv.accept()
