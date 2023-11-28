@@ -15,6 +15,10 @@ port = int(os.getenv("PORT"))
 password = os.getenv("PASSWORD")
 
 srv.start(addr, port, password)
+
+print(f"서버가 {addr}:{port}에서 시작되었습니다.")
+print("클라이언트의 접속을 기다리는 중입니다.")
+
 srv.accept()
 
 import camera

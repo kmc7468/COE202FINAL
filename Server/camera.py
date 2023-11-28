@@ -6,32 +6,24 @@ class CameraOutput:
 	def __init__(self):
 		self.__frame = None
 		self.__buffer = io.BytesIO()
-
 		self.__condition = threading.Condition()
-		self.__lock = threading.Lock()
 
 	def getframe(self) -> bytes:
-		while True:
-			self.__condition.wait()
+		with self.__condition:
+			self.__condition.wait_for(lambda: self.__frame is not None)
 
-			with self.__lock:
-				if self.__frame is not None:
-					result = self.__frame
-					self.__frame = None
-
-					return result
+			return self.__frame
 
 	def write(self, buffer: bytes) -> int:
-		with self.__lock:
+		with self.__condition:
 			if buffer.startswith(b"\xff\xd8"):
 				self.__buffer.truncate()
 				self.__frame = self.__buffer.getvalue()
 				self.__buffer.seek(0)
 
-				with self.__condition:
-					self.__condition.notify()
+				self.__condition.notify()
 
-			return self.__buffer.write(buffer)
+		return self.__buffer.write(buffer)
 
 class Camera:
 	def __init__(self):
