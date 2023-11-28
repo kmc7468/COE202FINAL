@@ -221,6 +221,13 @@ def run(
                         c = int(cls)  # integer class
                         label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                         annotator.box_label(xyxy, label, color=colors(c, True))
+                        
+                        firstPoint = (float(xyxy[0]), float(xyxy[1]))
+                        secondPoint = (float(xyxy[2]), float(xyxy[2]))
+                        midPoint = (firstPoint[0]+secondPoint[0]//2, firstPoint[1]+secondPoint[1]//2)
+                        print(midPoint)
+                        
+                        
                     if save_crop:
                         save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
 
@@ -265,7 +272,6 @@ def run(
     if update:
         strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
-
 def parse_opt():
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model path or triton URL')
@@ -301,11 +307,9 @@ def parse_opt():
     print_args(vars(opt))
     return opt
 
-
 def main(opt):
     check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
     run(**vars(opt))
-
 
 if __name__ == '__main__':
     opt = parse_opt()
