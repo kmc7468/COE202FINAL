@@ -6,13 +6,14 @@
 ## 초기 설정 방법
 ```
 git clone https://github.com/kmc7468/COE202FINAL.git
+cd COE202FINAL
 pip install -r requirements.txt
 ```
 최초 1회만 하면 됩니다.
 
 ## 실행 방법
-- Client: `python client`
-- Server: `python server`
+- Client: `python Client`
+- Server: `python Server`
 
 ## git 사용 방법
 ### 변경사항 서버로 업로드

@@ -3,10 +3,13 @@ import time
 
 bundle = modi.MODI()
 motor = bundle.motors[0]
+motor2 = bundle.motors[1]
 
 while True:
+	motor2.degree = (90, 90)
 	motor.speed = (-36, 35)
 	time.sleep(2)
+	motor2.degree = (45, 45)
 	motor.speed = (36, -35)
 	time.sleep(2)
 

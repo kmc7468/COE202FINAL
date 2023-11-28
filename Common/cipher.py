@@ -1,11 +1,12 @@
 from Crypto.Cipher import AES
 import hashlib
+from typing import Union
 
 # AES-256에서는 블록의 크기가 16바이트입니다.
 BLOCK_SIZE = 16
 
 class AES256Cipher:
-	def __init__(self, key: str | bytes, iv: bytes):
+	def __init__(self, key: Union[str, bytes], iv: bytes):
 		mykey = key
 		if type(key) is str:
 			mykey = hashlib.sha256(key.encode("utf-8")).digest()
