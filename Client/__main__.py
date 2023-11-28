@@ -42,3 +42,5 @@ recvthread.start()
 
 print("서버와 연결되었습니다.")
 input("클라이언트를 종료하려면 아무 키나 누르십시오.")
+
+httpsrv.stop()

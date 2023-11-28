@@ -12,10 +12,7 @@ class CameraOutput:
 		with self.__condition:
 			self.__condition.wait_for(lambda: self.__frame is not None)
 
-			result = self.__frame
-			self.__frame = None
-
-			return result
+			return self.__frame
 
 	def write(self, buffer: bytes) -> int:
 		with self.__condition:
@@ -24,7 +21,7 @@ class CameraOutput:
 				self.__frame = self.__buffer.getvalue()
 				self.__buffer.seek(0)
 
-				self.__condition.notify()
+				self.__condition.notify_all()
 
 		return self.__buffer.write(buffer)
 

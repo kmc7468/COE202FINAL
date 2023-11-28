@@ -1,10 +1,11 @@
 import http.server
 import os
+import socketserver
 import threading
 
 PORT = int(os.getenv("PORT"))
 
-class RequestHandler(http.server.BaseHTTPRequestHandler):
+class RequestHandler(http.server.SimpleHTTPRequestHandler):
 	def __init__(self, server, *args):
 		self.__server = server
 
@@ -32,14 +33,17 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 				self.wfile.write(frame)
 				self.wfile.write(b"\r\n")
 		else:
-			self.send_response(404)
+			self.send_error(404, "Page not found")
+
+class DaemonThreadingTCPServer(socketserver.ThreadingTCPServer):
+	daemon_threads = True
 
 class HTTPServer:
 	def __init__(self, port: int = PORT):
 		def reqhandler(*args):
 			RequestHandler(self, *args)
 
-		self.__server = http.server.HTTPServer(("localhost", port), reqhandler)
+		self.__server = DaemonThreadingTCPServer(("localhost", port), reqhandler)
 		self.__serverthread = None
 
 		self.__cameraframe = None
@@ -64,13 +68,10 @@ class HTTPServer:
 		with self.__cameraframecondition:
 			self.__cameraframecondition.wait_for(lambda: self.__cameraframe is not None)
 
-			result = self.__cameraframe
-			self.__cameraframe = None
-
-			return result
+			return self.__cameraframe
 
 	def setcameraframe(self, frame: bytes):
 		with self.__cameraframecondition:
 			self.__cameraframe = frame
 
-			self.__cameraframecondition.notify()
+			self.__cameraframecondition.notify_all()
