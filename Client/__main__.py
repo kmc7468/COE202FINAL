@@ -1,26 +1,20 @@
-import os
-import sys
+import os, sys
 sys.path.append(os.path.abspath("./Common"))
 
-from dotenv import load_dotenv
+import dotenv
 
-load_dotenv()
+dotenv.load_dotenv()
 
-import client
 import getpass
-
-clt = client.Connection()
 
 addr = input("Address: ")
 port = int(input("Port: "))
+password = getpass.getpass("Password: ")
 
-while True:
-	try:
-		clt.connect(addr, port, getpass.getpass("Password: "))
+import client
 
-		break
-	except Exception as e:
-		print(f"Connection failed: {e}")
+clt = client.Connection()
+clt.connect(addr, port, getpass.getpass("Password: "))
 
 def sender():
 	import assistant
