@@ -41,3 +41,6 @@ class Camera:
 		self.__camera.framerate = framerate
 
 		self.__camera.start_recording(self.__output, format="mjpeg")
+
+	def stop(self):
+		self.__camera.stop_recording()

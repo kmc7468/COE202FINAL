@@ -1,17 +1,17 @@
 import os, sys
 sys.path.append(os.path.abspath("./Common"))
 
-import dotenv
+from dotenv import load_dotenv
 
-dotenv.load_dotenv()
+load_dotenv()
 
 addr = "localhost"
 port = int(os.getenv("PORT"))
 password = os.getenv("PASSWORD")
 
-import server
+from server import Connection as Server
 
-srv = server.Connection()
+srv = Server()
 srv.start(addr, port, password)
 
 print(f"서버가 {addr}:{port}에서 시작되었습니다.")
@@ -19,19 +19,32 @@ print("클라이언트의 접속을 기다리는 중입니다.")
 
 srv.accept()
 
+print("클라이언트와 연결되었습니다.")
+
 def sender():
-	import camera
+	from camera import Camera
 	import time
 
-	cam = camera.Camera()
+	cam = Camera()
 	camout = cam.getoutput()
 
 	cam.start()
 
+	INTERVAL = 1.0 / int(os.getenv("FPS"))
+	last = None
+
 	while True:
+		now = time.time()
+
+		if last is not None:
+			sleep = INTERVAL - (now - last)
+			if sleep > 0:
+				time.sleep(sleep)
+
+		last = now
+
 		srv.sendstr("camera")
 		srv.sendbytes(camout.getframe())
-		time.sleep(1.0 / 15) # 15fps
 
 def recver():
 	import socket
@@ -44,6 +57,8 @@ def recver():
 			if tag == "command":
 				string = srv.recvstr()
 				print(string) # TODO
+			elif tag == "end":
+				exit()
 		except socket.timeout:
 			continue
 		except Exception:

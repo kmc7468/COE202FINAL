@@ -1,75 +1,44 @@
 import os, sys
 sys.path.append(os.path.abspath("./Common"))
 
-import dotenv
+from dotenv import load_dotenv
 
-dotenv.load_dotenv()
+load_dotenv()
 
-import getpass
+from getpass import getpass
 
-addr = input("Address: ")
-port = int(input("Port: "))
-password = getpass.getpass("Password: ")
+addr = input("서버 주소: ")
+port = int(input("서버 포트: "))
+password = getpass("비밀번호: ")
 
-import client
+from client import Connection as Client
 
-clt = client.Connection()
+clt = Client()
 clt.connect(addr, port, password)
 
-del password
+from httpserver import HTTPServer
 
-import server
-
-httpsrv = server.Server()
+httpsrv = HTTPServer()
 httpsrv.start()
 
-def sender():
-	import assistant
-	import stt
-
-	ass = assistant.Assistant()
-	mystt = stt.STT()
-
-	while True:
-		try:
-			input("아무 키나 누르면 녹음을 시작합니다.")
-			print("3초간 녹음을 시작합니다. 명령을 내려주세요.")
-
-			wav = mystt.record(3, rate=48000)
-
-			print("녹음이 완료되었습니다.")
-
-			with open("record.wav", "wb") as f:
-				f.write(wav.getbuffer())
-
-			kor = mystt.stt(wav, "너는 장애인을 돕는 로봇의 음성 인식을 담당하게 될거야. 로봇은 물건을 찾거나, 특정 거리만큼 이동하는 역할을 수행할 수 있어. 사용자는 너에게 관련된 명령을 내릴거고, 너는 그 명령을 텍스트로 잘 변환해주면 돼. '앞으로 10만큼 이동해줘', '스마트폰 찾아줘', '뒤로 10만큼 이동하고 파란 상자를 찾아줘' 등의 명령이 입력될거야.")
-			fml = ass.send(kor)
-
-			print(f"인식 결과: {kor}")
-			print(f"번역 결과: {fml}")
-
-			clt.sendstr("command")
-			clt.sendstr(fml)
-		except Exception as e:
-			print(f"에러: {e}")
-
 def recver():
+	import socket
+
 	while True:
 		try:
 			tag = clt.recvstr()
-			print(tag)
-
-			if tag == "camera":
-				httpsrv.setcameraframe(clt.recvbytes())
-		except TimeoutError:
+		except socket.timeout:
 			continue
-		except Exception:
-			raise
+
+		if tag == "camera":
+			httpsrv.setcameraframe(clt.recvbytes())
+		else:
+			raise Exception(f"Unknown tag '{tag}'")
 
 from threading import Thread
 
 recvthread = Thread(target=recver, daemon=True)
-
 recvthread.start()
 
-sender()
+print("서버와 연결되었습니다.")
+input("클라이언트를 종료하려면 아무 키나 누르십시오.")

@@ -18,22 +18,21 @@ class STT:
 		self.__pyaudio.terminate()
 
 	def record(self, duration: float, channels: int = 1, rate: int = 16000, chunk: int = 1024) -> io.BytesIO:
-		stream = self.__pyaudio.open(
-			format=pyaudio.paInt16,
-			channels=channels,
-			rate=rate,
-			input=True,
-			frames_per_buffer=chunk
-		)
-		frames = []
+		with self.__pyaudio.open(
+				format=pyaudio.paInt16,
+				channels=channels,
+				rate=rate,
+				input=True,
+				frames_per_buffer=chunk
+			) as stream:
 
-		for _ in range(0, int(rate / chunk * duration)):
-			frames.append(stream.read(chunk))
+			frames = []
 
-		stream.stop_stream()
-		stream.close()
+			for _ in range(0, int(rate / chunk * duration)):
+				frames.append(stream.read(chunk))
 
 		stream = io.BytesIO()
+		stream.name = "pyaudio.wav"
 
 		with wave.open(stream, "wb") as wf:
 			wf.setnchannels(channels)
@@ -41,7 +40,6 @@ class STT:
 			wf.setframerate(rate)
 			wf.writeframes(b"".join(frames))
 
-		stream.name = "record.wav"
 		stream.seek(0)
 
 		return stream
