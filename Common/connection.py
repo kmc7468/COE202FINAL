@@ -19,12 +19,12 @@ class Connection:
 		self.__cipher = cipher
 
 	def sendstr(self, string: str, tag: str = ""):
-		self._send(tag.encode("utf-8"))
 		self._send(string.encode("utf-8"))
+		self._send(tag.encode("utf-8"))
 
 	def sendbytes(self, data: bytes, tag: str = ""):
-		self._send(tag.encode("utf-8"))
 		self._send(data)
+		self._send(tag.encode("utf-8"))
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:
