@@ -19,13 +19,11 @@ class Connection(connection.Connection):
 		self.__serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.__serversocket.bind((host, port))
 		self.__serversocket.listen(1)
-		self.__serversocket.settimeout(1)
 
 	def accept(self):
 		while True:
 			try:
 				clientsocket, clientaddr = self.__serversocket.accept()
-				clientsocket.settimeout(1)
 				self._setsocket(clientsocket)
 
 				print(f"{clientaddr}가 접속을 시도했습니다.")
