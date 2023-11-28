@@ -48,7 +48,8 @@ def sender():
 			print(f"인식 결과: {kor}")
 			print(f"번역 결과: {fml}")
 
-			clt.sendstr(fml, "command")
+			clt.sendstr("command")
+			clt.sendstr(fml)
 		except Exception as e:
 			print(f"에러: {e}")
 

@@ -28,7 +28,8 @@ def sender():
 	cam.start()
 
 	while True:
-		srv.sendbytes(camout.getframe(), "camera")
+		srv.sendstr("camera")
+		srv.sendbytes(camout.getframe())
 
 def recver():
 	import socket
