@@ -29,10 +29,6 @@ def recver():
 			tag = clt.recvstr()
 		except socket.timeout:
 			continue
-		except BrokenPipeError:
-			print("서버와 연결이 끊어졌습니다.")
-
-			exit()
 
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
