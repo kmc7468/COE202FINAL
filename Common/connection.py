@@ -1,6 +1,4 @@
 import socket
-import threading
-from typing import Callable
 
 class Connection:
 	def __del__(self):
@@ -20,8 +18,13 @@ class Connection:
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
 
-	def sendstr(self, string: str):
+	def sendstr(self, string: str, tag: str = ""):
+		self._send(tag.encode("utf-8"))
 		self._send(string.encode("utf-8"))
+
+	def sendbytes(self, data: bytes, tag: str = ""):
+		self._send(tag.encode("utf-8"))
+		self._send(data)
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:
@@ -30,24 +33,17 @@ class Connection:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
 
-	def startrecvstr(self, callback: Callable[[str], None]) -> threading.Thread:
-		thread = threading.Thread(target=self.__recvloop, args=(callback,))
-		thread.daemon = True
-		thread.start()
+	def recvstr(self) -> (str, str):
+		string = self._recv().decode("utf-8")
+		tag = self._recv().decode("utf-8")
 
-		return thread
+		return (string, tag)
 
-	def __recvloop(self, callback: Callable[[str], None]):
-		while True:
-			try:
-				callback(self.recvstr())
-			except TimeoutError:
-				continue
-			except Exception:
-				raise
+	def recvbytes(self) -> (bytes, str):
+		data = self._recv()
+		tag = self._recv().decode("utf-8")
 
-	def recvstr(self) -> str:
-		return self._recv().decode("utf-8")
+		return (data, tag)
 
 	def _recv(self, decrypt: bool = True) -> bytes:
 		size = int.from_bytes(self.__recvraw(4), "big")

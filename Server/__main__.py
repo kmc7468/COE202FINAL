@@ -17,7 +17,37 @@ password = os.getenv("PASSWORD")
 srv.start(addr, port, password)
 srv.accept()
 
-srv.startrecvstr(print)
+import camera
 
-while True:
-	srv.sendstr(input())
+def sender():
+	cam = camera.Camera()
+	camout = cam.getoutput()
+
+	cam.start()
+
+	while True:
+		srv.sendbytes(camout.getframe(), "camera")
+
+def recver():
+	while True:
+		try:	
+			string, tag = srv.recvstr()
+
+			if tag == "command":
+				pass # TODO
+
+			print(string, tag)
+		except TimeoutError:
+			continue
+		except Exception:
+			raise
+
+from threading import Thread
+
+sendthread = Thread(target=sender, daemon=True)
+recvthread = Thread(target=recver, daemon=True)
+
+sendthread.start()
+recvthread.start()
+
+input("서버를 종료하려면 아무 키나 누르십시오.")
