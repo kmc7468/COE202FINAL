@@ -34,13 +34,13 @@ def recver():
 	import socket
 
 	while True:
-		try:	
-			string, tag = srv.recvstr()
+		try:
+			tag = srv.recvstr()
+			print(tag)
 
 			if tag == "command":
-				pass # TODO
-
-			print(string, tag)
+				string = srv.recvstr()
+				print(string) # TODO
 		except socket.timeout:
 			continue
 		except Exception:

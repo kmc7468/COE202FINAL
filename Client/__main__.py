@@ -55,12 +55,11 @@ def sender():
 def recver():
 	while True:
 		try:
-			data, tag = clt.recvbytes()
+			tag = clt.recvstr()
+			print(tag)
 
 			if tag == "camera":
-				print("hi")
-				httpsrv.setcameraframe(data)
-				print("bye")
+				httpsrv.setcameraframe(clt.recvbytes())
 		except TimeoutError:
 			continue
 		except Exception:

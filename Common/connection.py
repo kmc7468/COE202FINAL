@@ -18,13 +18,11 @@ class Connection:
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
 
-	def sendstr(self, string: str, tag: str = ""):
+	def sendstr(self, string: str):
 		self._send(string.encode("utf-8"))
-		self._send(tag.encode("utf-8"))
 
-	def sendbytes(self, data: bytes, tag: str = ""):
+	def sendbytes(self, data: bytes):
 		self._send(data)
-		self._send(tag.encode("utf-8"))
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:
@@ -33,17 +31,11 @@ class Connection:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
 
-	def recvstr(self) -> (str, str):
-		string = self._recv().decode("utf-8")
-		tag = self._recv().decode("utf-8")
+	def recvstr(self) -> str:
+		return self._recv().decode("utf-8")
 
-		return (string, tag)
-
-	def recvbytes(self) -> (bytes, str):
-		data = self._recv()
-		tag = self._recv().decode("utf-8")
-
-		return (data, tag)
+	def recvbytes(self) -> bytes:
+		return self._recv()
 
 	def _recv(self, decrypt: bool = True) -> bytes:
 		size = int.from_bytes(self.__recvraw(4), "big")
