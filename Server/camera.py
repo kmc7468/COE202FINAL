@@ -12,7 +12,10 @@ class CameraOutput:
 		with self.__condition:
 			self.__condition.wait_for(lambda: self.__frame is not None)
 
-			return self.__frame
+			result = self.__frame
+			self.__frame = None
+
+			return result
 
 	def write(self, buffer: bytes) -> int:
 		with self.__condition:

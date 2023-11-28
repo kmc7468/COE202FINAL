@@ -14,7 +14,14 @@ password = getpass.getpass("Password: ")
 import client
 
 clt = client.Connection()
-clt.connect(addr, port, getpass.getpass("Password: "))
+clt.connect(addr, port, password)
+
+del password
+
+import server
+
+httpsrv = server.Server()
+httpsrv.start()
 
 def sender():
 	import assistant
@@ -47,13 +54,13 @@ def sender():
 
 def recver():
 	while True:
-		try:	
+		try:
 			data, tag = clt.recvbytes()
 
 			if tag == "camera":
-				pass # TODO
-
-			print(data, tag)
+				print("hi")
+				httpsrv.setcameraframe(data)
+				print("bye")
 		except TimeoutError:
 			continue
 		except Exception:
