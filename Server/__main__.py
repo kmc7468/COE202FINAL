@@ -41,6 +41,10 @@ def recver():
 			tag = srv.recvstr()
 		except socket.timeout:
 			continue
+		except BrokenPipeError:
+			print("클라이언트와 연결이 끊어졌습니다.")
+
+			exit()
 
 		if tag == "command":
 			string = srv.recvstr()

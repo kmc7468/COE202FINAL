@@ -66,7 +66,7 @@ class HTTPServer:
 
 	def getcameraframe(self) -> bytes:
 		with self.__cameraframecondition:
-			self.__cameraframecondition.wait_for(lambda: self.__cameraframe is not None)
+			self.__cameraframecondition.wait()
 
 			return self.__cameraframe
 

@@ -15,7 +15,7 @@ class CameraOutput:
 
 	def getframe(self) -> bytes:
 		with self.__condition:
-			self.__condition.wait_for(lambda: self.__frame is not None)
+			self.__condition.wait()
 
 			return self.__frame
 
