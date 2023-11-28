@@ -21,6 +21,7 @@ srv.accept()
 
 def sender():
 	import camera
+	import time
 
 	cam = camera.Camera()
 	camout = cam.getoutput()
@@ -30,6 +31,7 @@ def sender():
 	while True:
 		srv.sendstr("camera")
 		srv.sendbytes(camout.getframe())
+		time.sleep(1.0 / 15) # 15fps
 
 def recver():
 	import socket
