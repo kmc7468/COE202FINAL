@@ -8,3 +8,6 @@ __pycache__/
 
 # Visual Studio Code
 .vscode/
+
+# Our files
+record.wav

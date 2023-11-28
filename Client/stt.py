@@ -18,18 +18,21 @@ class STT:
 		self.__pyaudio.terminate()
 
 	def record(self, duration: float, channels: int = 1, rate: int = 16000, chunk: int = 1024) -> io.BytesIO:
-		with self.__pyaudio.open(
-				format=pyaudio.paInt16,
-				channels=channels,
-				rate=rate,
-				input=True,
-				frames_per_buffer=chunk
-			) as stream:
+		stream = self.__pyaudio.open(
+			format=pyaudio.paInt16,
+			channels=channels,
+			rate=rate,
+			input=True,
+			frames_per_buffer=chunk
+		)
 
-			frames = []
+		frames = []
 
-			for _ in range(0, int(rate / chunk * duration)):
-				frames.append(stream.read(chunk))
+		for _ in range(0, int(rate / chunk * duration)):
+			frames.append(stream.read(chunk))
+
+		stream.stop_stream()
+		stream.close()
 
 		stream = io.BytesIO()
 		stream.name = "pyaudio.wav"
