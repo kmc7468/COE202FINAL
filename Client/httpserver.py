@@ -24,14 +24,17 @@ class RequestHandler(http.server.SimpleHTTPRequestHandler):
 			while True:
 				frame = self.__server.getcameraframe()
 
-				self.wfile.write(b"--FRAME\r\n")
+				try:
+					self.wfile.write(b"--FRAME\r\n")
 
-				self.send_header("Content-Type", "image/jpeg")
-				self.send_header("Content-Length", len(frame))
-				self.end_headers()
+					self.send_header("Content-Type", "image/jpeg")
+					self.send_header("Content-Length", len(frame))
+					self.end_headers()
 
-				self.wfile.write(frame)
-				self.wfile.write(b"\r\n")
+					self.wfile.write(frame)
+					self.wfile.write(b"\r\n")
+				except:
+					break
 		else:
 			self.send_error(404, "Page not found")
 
