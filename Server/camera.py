@@ -1,6 +1,11 @@
 import io
+import os
 import picamera
 import threading
+
+CAMERA_WIDTH = int(os.getenv("CAMERA_WIDTH"))
+CAMERA_HEIGHT = int(os.getenv("CAMERA_HEIGHT"))
+CAMERA_FPS = int(os.getenv("CAMERA_FPS"))
 
 class CameraOutput:
 	def __init__(self):
@@ -33,7 +38,7 @@ class Camera:
 	def getoutput(self) -> CameraOutput:
 		return self.__output
 
-	def start(self, resolution: tuple[int, int] = (640, 480), framerate: int = 15):
+	def start(self, resolution: tuple[int, int] = (CAMERA_WIDTH, CAMERA_HEIGHT), framerate: int = CAMERA_FPS):
 		self.__camera.resolution = resolution
 		self.__camera.framerate = framerate
 

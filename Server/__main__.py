@@ -23,26 +23,13 @@ print("클라이언트와 연결되었습니다.")
 
 def sender():
 	from camera import Camera
-	import time
 
 	cam = Camera()
 	camout = cam.getoutput()
 
 	cam.start()
 
-	INTERVAL = 1.0 / int(os.getenv("FPS"))
-	last = None
-
 	while True:
-		now = time.time()
-
-		if last is not None:
-			sleep = INTERVAL - (now - last)
-			if sleep > 0:
-				time.sleep(sleep)
-
-		last = now
-
 		srv.sendstr("camera")
 		srv.sendbytes(camout.getframe())
 
@@ -52,17 +39,14 @@ def recver():
 	while True:
 		try:
 			tag = srv.recvstr()
-			print(tag)
-
-			if tag == "command":
-				string = srv.recvstr()
-				print(string) # TODO
-			elif tag == "end":
-				exit()
 		except socket.timeout:
 			continue
-		except Exception:
-			raise
+
+		if tag == "command":
+			string = srv.recvstr()
+			print(string) # TODO
+		else:
+			raise Exception(f"Unknown tag '{tag}'")
 
 from threading import Thread
 
