@@ -1,4 +1,4 @@
-# $ python detect.py --weights yolov5s.pt --source 0                              
+# python detect.py --weights yolov5s.pt --source 0                              
 from utils.torch_utils import select_device, smart_inference_mode
 from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
                            increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
@@ -147,7 +147,8 @@ def run(
                     firstPoint = (float(xyxy[0]), float(xyxy[1]))
                     secondPoint = (float(xyxy[2]), float(xyxy[3]))
                     midPoint = ((firstPoint[0]+secondPoint[0])//2, (firstPoint[1]+secondPoint[1])//2)
-                    print(midPoint)  
+                    # print(midPoint)  
+                    # print(label)
                     
                     objects.append(Object(label, midPoint))  
                 
