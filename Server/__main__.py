@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-addr = "localhost"
+addr = "0.0.0.0"
 port = int(os.getenv("PORT"))
 password = os.getenv("PASSWORD")
 
