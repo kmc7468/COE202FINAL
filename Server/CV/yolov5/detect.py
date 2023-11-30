@@ -1,33 +1,4 @@
-# YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
-"""
-Run YOLOv5 detection inference on images, videos, directories, globs, YouTube, webcam, streams, etc.
-
-Usage - sources:
-    $ python detect.py --weights yolov5s.pt --source 0                               # webcam
-                                                     img.jpg                         # image
-                                                     vid.mp4                         # video
-                                                     screen                          # screenshot
-                                                     path/                           # directory
-                                                     list.txt                        # list of images
-                                                     list.streams                    # list of streams
-                                                     'path/*.jpg'                    # glob
-                                                     'https://youtu.be/LNwODJXcvt4'  # YouTube
-                                                     'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
-
-Usage - formats:
-    $ python detect.py --weights yolov5s.pt                 # PyTorch
-                                 yolov5s.torchscript        # TorchScript
-                                 yolov5s.onnx               # ONNX Runtime or OpenCV DNN with --dnn
-                                 yolov5s_openvino_model     # OpenVINO
-                                 yolov5s.engine             # TensorRT
-                                 yolov5s.mlmodel            # CoreML (macOS-only)
-                                 yolov5s_saved_model        # TensorFlow SavedModel
-                                 yolov5s.pb                 # TensorFlow GraphDef
-                                 yolov5s.tflite             # TensorFlow Lite
-                                 yolov5s_edgetpu.tflite     # TensorFlow Edge TPU
-                                 yolov5s_paddle_model       # PaddlePaddle
-"""
-  
+# $ python detect.py --weights yolov5s.pt --source 0                              
 from utils.torch_utils import select_device, smart_inference_mode
 from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
                            increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
@@ -45,20 +16,6 @@ import time
 import numpy as np
 import cv2
 
-# def get_limits(color):
-
-#     c = np.uint8([[color]])
-#     hsvC = cv2.cvtColor(c, cv2.COLOR_BGR2HSV)
-
-#     lowerLimit = hsvC[0][0][0] - 10, 100, 100
-#     upperLimit = hsvC[0][0][0] + 10, 255, 255
-
-#     lowerLimit = np.array(lowerLimit, dtype=np.uint8)
-#     upperLimit = np.array(upperLimit, dtype=np.uint8)
-
-#     return lowerLimit, upperLimit
-
-
 import torch
 
 FILE = Path(__file__).resolve()
@@ -67,6 +24,12 @@ if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
+objects = list()
+
+class Object:
+    def __init__(self, objectName, coordinates):
+        self.objectName = objectName
+        self.coordinates = coordinates
 
 @smart_inference_mode()
 def run(
@@ -150,21 +113,6 @@ def run(
         with dt[2]:
             pred = non_max_suppression(pred, conf_thres, iou_thres, classes, agnostic_nms, max_det=max_det)
 
-        # Second-stage classifier (optional)
-        # pred = utils.general.apply_classifier(pred, classifier_model, im, im0s)
-
-        # Define the path for the CSV file
-        csv_path = save_dir / 'predictions.csv'
-
-        # Create or append to the CSV file
-        def write_to_csv(image_name, prediction, confidence):
-            data = {'Image Name': image_name, 'Prediction': prediction, 'Confidence': confidence}
-            with open(csv_path, mode='a', newline='') as f:
-                writer = csv.DictWriter(f, fieldnames=data.keys())
-                if not csv_path.is_file():
-                    writer.writeheader()
-                writer.writerow(data)
-
         # Process predictions
         for i, det in enumerate(pred):  # per image
             seen += 1
@@ -195,42 +143,15 @@ def run(
 
                     c = int(cls)  # integer class
                     label = names[c] if hide_conf else f'{names[c]}'
-                    confidence = float(conf)
-                    confidence_str = f'{confidence:.2f}'
-
-                    if int(time.time()) % 4 == 0:
-                        # print(float(xyxy[0]))
-                        # print(float(xyxy[1]))
-                        # print(float(xyxy[2]))
-                        # print(float(xyxy[3]))
-                        firstPoint = (float(xyxy[0]), float(xyxy[1]))
-                        secondPoint = (float(xyxy[2]), float(xyxy[2]))
-                        midPoint = (firstPoint[0]+secondPoint[0]//2, firstPoint[1]+secondPoint[1]//2)
-                        print(midPoint)
-
-                    if save_csv:
-                        write_to_csv(p.name, label, confidence_str)
-
-                    if save_txt:  # Write to file
-                        xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
-                        line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
-                        with open(f'{txt_path}.txt', 'a') as f:
-                            f.write(('%g ' * len(line)).rstrip() % line + '\n')
-
-                    if save_img or save_crop or view_img:  # Add bbox to image
-                        c = int(cls)  # integer class
-                        label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
-                        
-                        firstPoint = (float(xyxy[0]), float(xyxy[1]))
-                        secondPoint = (float(xyxy[2]), float(xyxy[2]))
-                        midPoint = (firstPoint[0]+secondPoint[0]//2, firstPoint[1]+secondPoint[1]//2)
-                        print(midPoint)
-                        
-                        
-                    if save_crop:
-                        save_one_box(xyxy, imc, file=save_dir / 'crops' / names[c] / f'{p.stem}.jpg', BGR=True)
-
+                    
+                    firstPoint = (float(xyxy[0]), float(xyxy[1]))
+                    secondPoint = (float(xyxy[2]), float(xyxy[3]))
+                    midPoint = ((firstPoint[0]+secondPoint[0])//2, (firstPoint[1]+secondPoint[1])//2)
+                    print(midPoint)  
+                    
+                    objects.append(Object(label, midPoint))  
+                
+    
             # Stream results
             im0 = annotator.result()
             if view_img:
@@ -241,36 +162,8 @@ def run(
                 cv2.imshow(str(p), im0)
                 cv2.waitKey(1)  # 1 millisecond
 
-            # Save results (image with detections)
-            if save_img:
-                if dataset.mode == 'image':
-                    cv2.imwrite(save_path, im0)
-                else:  # 'video' or 'stream'
-                    if vid_path[i] != save_path:  # new video
-                        vid_path[i] = save_path
-                        if isinstance(vid_writer[i], cv2.VideoWriter):
-                            vid_writer[i].release()  # release previous video writer
-                        if vid_cap:  # video
-                            fps = vid_cap.get(cv2.CAP_PROP_FPS)
-                            w = int(vid_cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                            h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                        else:  # stream
-                            fps, w, h = 30, im0.shape[1], im0.shape[0]
-                        save_path = str(Path(save_path).with_suffix('.mp4'))  # force *.mp4 suffix on results videos
-                        vid_writer[i] = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (w, h))
-                    vid_writer[i].write(im0)
-
         # Print time (inference-only)
         LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
-
-    # Print results
-    t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
-    LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
-    if save_txt or save_img:
-        s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
-        LOGGER.info(f"Results saved to {colorstr('bold', save_dir)}{s}")
-    if update:
-        strip_optimizer(weights[0])  # update model (to fix SourceChangeWarning)
 
 def parse_opt():
     parser = argparse.ArgumentParser()
@@ -314,3 +207,7 @@ def main(opt):
 if __name__ == '__main__':
     opt = parse_opt()
     main(opt)
+
+for i in range(len(objects)):
+    print("Name of object: " + objects[i].objectName)
+    print("Position of object: " + str(objects[i].coordinates))
