@@ -34,7 +34,10 @@ def sender():
 		srv.sendbytes(camout.getframe())
 
 def recver():
+	import car
 	import socket
+
+	mycar = car.Car()
 
 	while True:
 		try:
@@ -43,8 +46,11 @@ def recver():
 			continue
 
 		if tag == "command":
-			string = srv.recvstr()
-			print(string) # TODO
+			cmd = srv.recvstr()
+			print(f"실행 요청: {cmd}")
+
+			result = mycar.execute(cmd)
+			print("실행에 성공했습니다." if result else "실행에 실패했습니다.")
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 
