@@ -14,10 +14,12 @@ progress = open("./Client/Resources/기다려주세요.wav", "rb") # 명령어 �
 
 from httpserver import HTTPServer
 
-httpsrv = HTTPServer()
+PORT = int(os.getenv("PORT"))
+
+httpsrv = HTTPServer(PORT)
 httpsrv.start()
 
-print("HTTP 서버가 시작되었습니다.")
+print(f"HTTP 서버가 localhost:{PORT}에서 시작되었습니다.")
 
 from client import Connection as Client
 from getpass import getpass
@@ -60,7 +62,7 @@ recvthread.start()
 from cv import Yolo
 
 yolo = Yolo()
-yolo.start(f"http://localhost:{httpsrv.getport()}/camera")
+yolo.start(f"http://localhost:{PORT}/camera")
 
 def yoloupdater():
 	while True:

@@ -1,10 +1,7 @@
 import http.server
-import os
 import socketserver
 import threading
 import typing
-
-PORT = int(os.getenv("PORT"))
 
 class RequestHandler(http.server.SimpleHTTPRequestHandler):
 	def __init__(self, server, *args):
@@ -48,9 +45,7 @@ class DaemonThreadingTCPServer(socketserver.ThreadingTCPServer):
 	daemon_threads = True
 
 class HTTPServer:
-	def __init__(self, port: int = PORT):
-		self.__port = port
-
+	def __init__(self, port: int):
 		def reqhandler(*args):
 			RequestHandler(self, *args)
 
@@ -66,9 +61,6 @@ class HTTPServer:
 	def __del__(self):
 		self.stop()
 		self.__server.server_close()
-
-	def getport(self) -> int:
-		return self.__port
 
 	def start(self):
 		self.__serverthread = threading.Thread(target=self.__server.serve_forever, daemon=True)
