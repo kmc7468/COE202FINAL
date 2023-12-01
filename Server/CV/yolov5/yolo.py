@@ -31,7 +31,6 @@ def get():
 	return detect.objects[-1]
 
 input()
-# print(get())
 print(yolo.getObject())
 
 
