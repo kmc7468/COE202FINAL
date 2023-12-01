@@ -1,5 +1,6 @@
 import os, sys
 sys.path.append(os.path.abspath("./Common"))
+sys.path.append(os.path.abspath("./Client/yolov5"))
 
 from dotenv import load_dotenv
 
@@ -25,11 +26,13 @@ from httpserver import HTTPServer
 httpsrv = HTTPServer()
 httpsrv.start()
 
-import CV.yolov5.yolo as yolo
-myyolo = yolo.Yolo()
-myyolo.start()
+yolo = None
 
 def sender():
+	from cv import Yolo
+	yolo = Yolo()
+	yolo.start("http://localhost:7469/camera") #Todo
+
 	import assistant
 	import audio
 
