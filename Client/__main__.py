@@ -25,6 +25,10 @@ from httpserver import HTTPServer
 httpsrv = HTTPServer()
 httpsrv.start()
 
+import CV.yolov5.yolo as yolo
+myyolo = yolo.Yolo()
+myyolo.start()
+
 def sender():
 	import assistant
 	import audio

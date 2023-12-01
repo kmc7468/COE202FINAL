@@ -24,14 +24,6 @@ class Yolo:
     def func(self):
         detect.run(source = 0, pipe = self)
  
-yolo = Yolo()
-yolo.thread.start()
-
-def get():
-	return detect.objects[-1]
-
-input()
-print(yolo.getObject())
 
 
     
