@@ -1,4 +1,5 @@
 import modi
+import time
 
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
@@ -14,5 +15,18 @@ class Car:
 	def execute(self, cmd: str) -> bool:
 		commands = parsecmd(cmd)
 
-		# TODO: parse command and do something
+		if commands[0]=="move" and commands[1]=="forward":
+			for i in range(int(commands[2])):
+				self.forward()
+				time.sleep(0.5)
+			return True
+
 		return False # returns whether the command is successully executed
+			
+	def disableMotor(self):
+		self.__wheels.speed = (0, 0)
+
+	def forward(self):
+		self.__wheels.speed = (-45, 45)
+		time.sleep(1)
+		self.disableMotor()
