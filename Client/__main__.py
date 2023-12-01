@@ -1,9 +1,3 @@
-from getpass import getpass
-
-addr = input("서버 주소: ")
-port = int(input("서버 포트: "))
-password = getpass("비밀번호: ")
-
 print("클라이언트를 준비하는 중입니다. 잠시 기다려 주세요.")
 
 import os, sys
@@ -26,17 +20,23 @@ httpsrv.start()
 print("HTTP 서버가 시작되었습니다.")
 
 from client import Connection as Client
+from getpass import getpass
 
 clt = Client()
 
 while True:
 	try:
+		addr = input("서버 주소: ")
+		port = int(input("서버 포트: "))
+		password = getpass("비밀번호: ")
+
 		clt.connect(addr, port, password)
 		print("서버와 연결되었습니다.")
 
 		break
 	except Exception as e:
 		print(f"서버와 연결하지 못했습니다: {e}")
+		print()
 
 def recver():
 	import socket
