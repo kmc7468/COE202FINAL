@@ -1,4 +1,6 @@
 import threading
+import time
+import logging
 import detect
 
 class Yolo:
@@ -10,13 +12,17 @@ class Yolo:
         self.thread.start()
     
     def getObject(self):
-        return detect.objects[-1].objectName
-    
-    def getCoordinates(self):
-        return detect.objects[-1].coordinates
+        with self.condition:
+            self.condition.wait()
+            return detect.objects[-1]
+                
+    def setObject(self, object):
+        with self.condition:
+            detect.objects.append(object)
+            self.condition.notifyAll()
     
     def func(self):
-        detect.run(source = 0)
+        detect.run(source = 0, pipe = self)
  
 yolo = Yolo()
 yolo.thread.start()

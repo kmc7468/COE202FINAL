@@ -33,6 +33,7 @@ class Object:
 
 @smart_inference_mode()
 def run(
+        pipe,
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
         source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
         data=ROOT / 'data/coco128.yaml',  # dataset.yaml path
@@ -60,7 +61,7 @@ def run(
         hide_conf=False,  # hide confidences
         half=False,  # use FP16 half-precision inference
         dnn=False,  # use OpenCV DNN for ONNX inference
-        vid_stride=1,  # video frame-rate stride
+        vid_stride=1,  # video frame-rate stride        
 ):
     source = str(source)
     save_img = not nosave and not source.endswith('.txt')  # save inference images
@@ -147,10 +148,8 @@ def run(
                     firstPoint = (float(xyxy[0]), float(xyxy[1]))
                     secondPoint = (float(xyxy[2]), float(xyxy[3]))
                     midPoint = ((firstPoint[0]+secondPoint[0])//2, (firstPoint[1]+secondPoint[1])//2)
-                    # print(midPoint)  
-                    # print(label)
-                    
-                    objects.append(Object(label, midPoint))  
+
+                    pipe.setObject(Object(label, midPoint))
                 
     
             # Stream results
