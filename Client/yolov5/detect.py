@@ -1,19 +1,14 @@
 # python detect.py --weights yolov5s.pt --source 0                              
 from utils.torch_utils import select_device, smart_inference_mode
-from utils.general import (LOGGER, Profile, check_file, check_img_size, check_imshow, check_requirements, colorstr, cv2,
-                           increment_path, non_max_suppression, print_args, scale_boxes, strip_optimizer, xyxy2xywh)
+from utils.general import (Profile, check_file, check_img_size, check_imshow, cv2,
+                           increment_path, non_max_suppression, scale_boxes)
 from utils.dataloaders import IMG_FORMATS, VID_FORMATS, LoadImages, LoadScreenshots, LoadStreams
 from models.common import DetectMultiBackend
-from ultralytics.utils.plotting import Annotator, colors, save_one_box
-import argparse
-import csv
+from ultralytics.utils.plotting import Annotator, colors
 import os
-import platform
 import sys
 from pathlib import Path
-import time
 
-import numpy as np
 import cv2
 
 import torch
@@ -139,37 +134,23 @@ def run(
                     n = (det[:, 5] == c).sum()  # detections per class
                     s += f"{n} {names[int(c)]}{'s' * (n > 1)}, "  # add to string
                 
-                objects = []
-
                 # Write results
                 for *xyxy, conf, cls in reversed(det):
-
                     c = int(cls)  # integer class
                     label = names[c] if hide_conf else f'{names[c]}'
                     confidence = float(conf)
-                    confidence_str = f'{confidence:.2f}'
                     
                     firstPoint = (float(xyxy[0]), float(xyxy[1]))
                     secondPoint = (float(xyxy[2]), float(xyxy[3]))
                     midPoint = ((firstPoint[0]+secondPoint[0])/2, (firstPoint[1]+secondPoint[1])/2)
 
-                    objects.append((label, midPoint))
+                    pipe.addobject(label, midPoint, confidence)
 
                     label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
                     annotator.box_label(xyxy, label, color=colors(c, True))
 
-                pipe.setobjects(objects)
-                
-    
             # Stream results
-            im0 = annotator.result()
-            if view_img:
-                if platform.system() == 'Linux' and p not in windows:
-                    windows.append(p)
-                    cv2.namedWindow(str(p), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-                    cv2.resizeWindow(str(p), im0.shape[1], im0.shape[0])
-                cv2.imshow(str(p), im0)
-                cv2.waitKey(1)  # 1 millisecond
+            _, buffer = cv2.imencode('.jpg', annotator.result())
 
-        # Print time (inference-only)
-        LOGGER.info(f"{s}{'' if len(det) else '(no detections), '}{dt[1].dt * 1E3:.1f}ms")
+            pipe.setframe(bytes(buffer))
+            pipe.readyresult()
