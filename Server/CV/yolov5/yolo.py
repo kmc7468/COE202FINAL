@@ -19,7 +19,7 @@ class Yolo:
     def setObject(self, object):
         with self.condition:
             detect.objects.append(object)
-            self.condition.notifyAll()
+            self.condition.notify_all()
     
     def func(self):
         detect.run(source = 0, pipe = self)
@@ -31,8 +31,7 @@ def get():
 	return detect.objects[-1]
 
 input()
-# print(get())
-print(yolo.getObject(), yolo.getCoordinates())
+print(yolo.getObject())
 
 
     
