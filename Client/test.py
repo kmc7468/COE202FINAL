@@ -6,6 +6,9 @@ import os, sys
 sys.path.append(os.path.abspath("./Common"))
 sys.path.append(os.path.abspath("./Client/yolov5"))
 
+from subprocess import check_call
+check_call([sys.executable, "-m", "pip", "install", "-r", "./Client/requirements.test.txt"])
+
 start = open("./Client/Resources/준비되었어요.wav", "rb") # 호출어 인식이 가능한 상태가 되었을 때 재생
 ready = open("./Client/Resources/듣고있어요.wav", "rb") # 명령어 인식이 가능한 상태가 되었을 때 재생
 progress = open("./Client/Resources/기다려주세요.wav", "rb") # 명령어 분석이 시작되었을 때 재생
