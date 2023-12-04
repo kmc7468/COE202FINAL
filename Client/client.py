@@ -7,7 +7,7 @@ class Connection(connection.Connection):
 	def connect(self, host: str, port: int, password: str):
 		mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		mysocket.connect((host, port))
-		mysocket.settimeout(1)
+		mysocket.settimeout(3)
 
 		self._setsocket(mysocket)
 
