@@ -17,16 +17,20 @@ class Yolo:
 		self.__result = None
 		self.__newresult = YoloResult()
 		self.__condition = threading.Condition()
+  
+		self.__filter = ['cup', 'bottle', 'mouse']
 
 	def start(self, source):
 		ready = threading.Condition()
-
 		self.__thread = threading.Thread(target=self.__runyolo, args=(ready, source), daemon=True)
 		self.__thread.start()
 
 		with ready:
 			ready.wait()
-
+   
+	def set_filter(self, new_filter):
+		self.__filter = new_filter
+       
 	def getresult(self) -> YoloResult:
 		with self.__condition:
 			self.__condition.wait()
@@ -43,8 +47,7 @@ class Yolo:
 		with self.__condition:
 			self.__result = self.__newresult
 			self.__newresult = YoloResult()
-
 			self.__condition.notify_all()
 
 	def __runyolo(self, ready: threading.Condition, source):
-		detect.run(self, ready, source=source)
+		detect.run(self, self.__filter, ready, source=source)

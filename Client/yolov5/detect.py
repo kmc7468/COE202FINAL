@@ -24,6 +24,7 @@ objects = list()
 @smart_inference_mode()
 def run(
         pipe,
+        filter,
         ready,
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
         source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
@@ -144,10 +145,10 @@ def run(
                     secondPoint = (float(xyxy[2]), float(xyxy[3]))
                     midPoint = ((firstPoint[0]+secondPoint[0])/2, (firstPoint[1]+secondPoint[1])/2)
 
-                    pipe.addobject(label, midPoint, confidence)
-
-                    label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                    annotator.box_label(xyxy, label, color=colors(c, True))
+                    if label in filter:
+                        pipe.addobject(label, midPoint, confidence)
+                        label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                        annotator.box_label(xyxy, label, color=colors(c, True))
 
             # Stream results
             _, buffer = cv2.imencode('.jpg', annotator.result())
