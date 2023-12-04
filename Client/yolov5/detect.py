@@ -141,14 +141,17 @@ def run(
                     label = names[c] if hide_conf else f'{names[c]}'
                     confidence = float(conf)
                     
+                    if label not in filter:
+                        continue
+
                     firstPoint = (float(xyxy[0]), float(xyxy[1]))
                     secondPoint = (float(xyxy[2]), float(xyxy[3]))
-                    midPoint = ((firstPoint[0]+secondPoint[0])/2, (firstPoint[1]+secondPoint[1])/2)
+                    midPoint = ((firstPoint[0] + secondPoint[0]) / 2, (firstPoint[1] + secondPoint[1]) / 2)
 
-                    if label in filter:
-                        pipe.addobject(label, midPoint, confidence)
-                        label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
-                        annotator.box_label(xyxy, label, color=colors(c, True))
+                    pipe.addobject(label, midPoint, confidence)
+
+                    label = None if hide_labels else (names[c] if hide_conf else f'{names[c]} {conf:.2f}')
+                    annotator.box_label(xyxy, label, color=colors(c, True))
 
             # Stream results
             _, buffer = cv2.imencode('.jpg', annotator.result())

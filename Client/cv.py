@@ -18,7 +18,7 @@ class Yolo:
 		self.__newresult = YoloResult()
 		self.__condition = threading.Condition()
   
-		self.__filter = ['cup', 'bottle', 'mouse']
+		self.__filter = ["cup", "bottle", "mouse"]
 
 	def start(self, source):
 		ready = threading.Condition()
@@ -27,10 +27,13 @@ class Yolo:
 
 		with ready:
 			ready.wait()
-   
-	def set_filter(self, new_filter):
-		self.__filter = new_filter
-       
+
+	def getfilter(self) -> list[str]:
+		return self.__filter
+
+	def setfilter(self, filter: list[str]):
+		self.__filter = filter
+
 	def getresult(self) -> YoloResult:
 		with self.__condition:
 			self.__condition.wait()
