@@ -1,10 +1,12 @@
 import collections
 import socket
+import threading
 import typing
 
 class Connection:
 	def __init__(self):
 		self.__sendqueue = collections.deque()
+		self.__sendlock = threading.Lock()
 
 	def __del__(self):
 		if hasattr(self, "__socket") and self.__socket is not None:
@@ -30,17 +32,19 @@ class Connection:
 			self.sendflush()
 
 	def sendflush(self):
-		try:
-			tag, data = self.__sendqueue.popleft()
-		except IndexError:
-			return
+		while True:
+			try:
+				tag, data = self.__sendqueue.popleft()
+			except IndexError:
+				return
 
-		self._send(tag.encode("utf-8"))
+			with self.__sendlock:
+				self._send(tag.encode("utf-8"))
 
-		if type(data) is str:
-			self._send(data.encode("utf-8"))
-		elif type(data) is bytes:
-			self._send(data)
+				if type(data) is str:
+					self._send(data.encode("utf-8"))
+				elif type(data) is bytes:
+					self._send(data)
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:
