@@ -20,7 +20,11 @@ cam.start()
 
 from car import Car
 
-car = Car()
+#car = Car()
+
+import cv
+
+cvresult = None
 
 from server import Connection as Server
 
@@ -40,7 +44,6 @@ def worker():
 		srv.send("vision", None) # test
 
 def recver():
-	import json
 	import socket
 
 	while True:
@@ -53,11 +56,13 @@ def recver():
 			cmd = srv.recvstr()
 			print(f"실행 요청: {cmd}")
 
-			result = car.execute(cmd)
-			print("실행에 성공했습니다." if result else "실행에 실패했습니다.")   
+			#result = car.execute(cmd)
+			#print("실행에 성공했습니다." if result else "실행에 실패했습니다.")   
 		elif tag == "vision":
-			objs = json.loads(srv.recvstr())
-			print(objs)
+			json = srv.recvstr()
+			print(f"결과: {json}")
+
+			cvresult = cv.fromjson(json)
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 

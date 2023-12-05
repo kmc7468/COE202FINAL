@@ -1,4 +1,5 @@
 import detect
+import json
 import threading
 
 class YoloObject:
@@ -11,6 +12,13 @@ class YoloResult:
 	def __init__(self, objects: list[YoloObject] = [], frame: bytes = b""):
 		self.objects = objects
 		self.frame = frame
+
+	def tojson(self) -> str:
+		return json.dumps([{
+			"name": obj.name,
+			"location": obj.location,
+			"confidence": obj.confidence
+		} for obj in self.objects])
 
 class Yolo:
 	def __init__(self):

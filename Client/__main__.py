@@ -57,22 +57,18 @@ while True:
 		print()
 
 def recver():
-	import json
 	import socket
  
 	while True:
 		try:
-			print("fuck1")
 			tag = clt.recvstr()
-			print("fuck2")
 		except socket.timeout:
-			print("fuck3")
 			continue
 
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
 		elif tag == "vision":
-			clt.send("vision", json.dumps(yolo.getresult().objects))
+			clt.send("vision", yolo.getresult().tojson())
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 
