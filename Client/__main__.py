@@ -50,8 +50,6 @@ def recver():
 		except socket.timeout:
 			continue
 
-
-
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
 		elif tag == "getyolo":

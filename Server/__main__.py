@@ -39,6 +39,7 @@ def worker():
 
 	while True:  
 		srv.sendbytes("camera", camout.getframe())
+		srv.sendstr("getyolo", None) # test
 
 def recver():
 	global yoloList

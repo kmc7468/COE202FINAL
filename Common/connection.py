@@ -50,17 +50,11 @@ class Connection:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
 
-	def recvstr(self) -> (str, str):
-		tag = self._recv().decode("utf-8")
-		data = self._recv().decode("utf-8")
+	def recvstr(self) -> str:
+		return self._recv().decode("utf-8")
 
-		return (tag, data)
-
-	def recvbytes(self) -> (str, bytes):
-		tag = self._recv().decode("utf-8")
-		data = self._recv()
-
-		return (tag, data)
+	def recvbytes(self) -> bytes:
+		return self._recv()
 
 	def _recv(self, decrypt: bool = True) -> bytes:
 		size = int.from_bytes(self.__recvraw(4), "big")
