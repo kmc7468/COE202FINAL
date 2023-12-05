@@ -26,6 +26,10 @@ print("클라이언트와 연결되었습니다.")
 queue = deque([])
 
 def sender():
+	while True:
+		srv.sendflush()
+
+def worker():
 	from camera import Camera
 
 	cam = Camera()
@@ -70,9 +74,11 @@ def recver():
 from threading import Thread
 
 sendthread = Thread(target=sender, daemon=True)
+workthread = Thread(target=worker, daemon=True)
 recvthread = Thread(target=recver, daemon=True)
 
 sendthread.start()
+workthread.start()
 recvthread.start()
 
 input("서버를 종료하려면 아무 키나 누르십시오.")
