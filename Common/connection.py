@@ -1,6 +1,12 @@
+import collections
 import socket
+import threading
 
 class Connection:
+	def __init__(self):
+		self.__sendqueue = collections.deque()
+		self.__sendqueuelock = threading.Lock()
+
 	def __del__(self):
 		if hasattr(self, "__socket") and self.__socket is not None:
 			self.__socket.close()
@@ -18,11 +24,24 @@ class Connection:
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
 
-	def sendstr(self, string: str):
-		self._send(string.encode("utf-8"))
+	def sendstr(self, tag: str, data: str):
+		with self.__sendqueuelock:
+			self.__sendqueue.append((tag, data))
 
-	def sendbytes(self, data: bytes):
-		self._send(data)
+	def sendbytes(self, tag: str, data: bytes):
+		with self.__sendqueuelock:
+			self.__sendqueue.append((tag, data))
+
+	def sendflush(self):
+		with self.__sendqueuelock:
+			while len(self.__sendqueue) > 0:
+				tag, data = self.__sendqueue.popleft()
+				self._send(tag.encode("utf-8"))
+
+				if type(data) is str:
+					self._send(data.encode("utf-8"))
+				else:
+					self._send(data)
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:
@@ -31,11 +50,17 @@ class Connection:
 			self.__socket.sendall(len(data).to_bytes(4, "big"))
 			self.__socket.sendall(data)
 
-	def recvstr(self) -> str:
-		return self._recv().decode("utf-8")
+	def recvstr(self) -> (str, str):
+		tag = self._recv().decode("utf-8")
+		data = self._recv().decode("utf-8")
 
-	def recvbytes(self) -> bytes:
-		return self._recv()
+		return (tag, data)
+
+	def recvbytes(self) -> (str, bytes):
+		tag = self._recv().decode("utf-8")
+		data = self._recv()
+
+		return (tag, data)
 
 	def _recv(self, decrypt: bool = True) -> bytes:
 		size = int.from_bytes(self.__recvraw(4), "big")
