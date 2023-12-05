@@ -41,6 +41,7 @@ while True:
 		print()
 
 def recver():
+	import json
 	import socket
  
 	while True:
@@ -53,10 +54,14 @@ def recver():
 
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
+		elif tag == "getyolo":
+			global yolo
+
+			clt.sendstr("yololist", json.dumps(yolo.getresult()))
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 
-from threading import Lock, Thread
+from threading import Thread
 
 recvthread = Thread(target=recver, daemon=True)
 recvthread.start()
