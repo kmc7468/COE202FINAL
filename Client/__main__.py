@@ -54,7 +54,7 @@ def recver():
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 
-from threading import Thread
+from threading import Lock, Thread
 
 recvthread = Thread(target=recver, daemon=True)
 recvthread.start()
@@ -74,6 +74,13 @@ yoloupdatethread.start()
 print("yolov5가 시작되었습니다.")
 
 def sender():
+	while True:
+		clt.sendflush()
+
+sendthread = Thread(target=sender, daemon=True)
+sendthread.start()
+
+def worker():
 	import assistant
 	import audio
 
@@ -109,14 +116,13 @@ def sender():
 			fml = ass.send(cmdkor)
 			print(f"번역 결과: {fml}")
 
-			clt.sendstr("command")
-			clt.sendstr(fml)
+			clt.sendstr("command", fml)
 
 			playstart = True
 		except Exception as e:
 			print(f"명령을 처리하지 못했습니다: {e}")
 
-sendthread = Thread(target=sender, daemon=True)
-sendthread.start()
+workthread = Thread(target=worker, daemon=True)
+workthread.start()
 
 input()

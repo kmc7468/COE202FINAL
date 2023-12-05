@@ -40,7 +40,7 @@ class Connection:
 
 				if type(data) is str:
 					self._send(data.encode("utf-8"))
-				else:
+				elif type(data) is bytes:
 					self._send(data)
 
 	def _send(self, data: bytes, encrypt: bool = True):
