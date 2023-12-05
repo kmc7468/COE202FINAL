@@ -1,3 +1,5 @@
+print("서버를 준비하는 중입니다. 잠시 기다려 주세요.")
+
 import os, sys
 sys.path.append(os.path.abspath("./Common"))
 
@@ -8,6 +10,17 @@ load_dotenv()
 addr = "0.0.0.0"
 port = int(os.getenv("PORT"))
 password = os.getenv("PASSWORD")
+
+from camera import Camera
+
+cam = Camera()
+camout = cam.getoutput()
+
+cam.start()
+
+from car import Car
+
+car = Car()
 
 from server import Connection as Server
 
@@ -22,23 +35,13 @@ srv.accept()
 print("클라이언트와 연결되었습니다.")
 
 def worker():
-	from camera import Camera
-
-	cam = Camera()
-	camout = cam.getoutput()
-
-	cam.start()
-
 	while True:  
 		srv.send("camera", camout.getframe())
 		srv.send("vision", None) # test
 
 def recver():
-	import car
 	import json
 	import socket
-
-	mycar = car.Car()
 
 	while True:
 		try:
@@ -50,7 +53,7 @@ def recver():
 			cmd = srv.recvstr()
 			print(f"실행 요청: {cmd}")
 
-			result = mycar.execute(cmd)
+			result = car.execute(cmd)
 			print("실행에 성공했습니다." if result else "실행에 실패했습니다.")   
 		elif tag == "vision":
 			objs = json.loads(srv.recvstr())

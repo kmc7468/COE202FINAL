@@ -30,6 +30,8 @@ def yoloupdater():
 	while True:
 		httpsrv.setyoloframe(yolo.getresult().frame)
 
+from threading import Thread
+
 yoloupdatethread = Thread(target=yoloupdater, daemon=True)
 yoloupdatethread.start()
 
@@ -73,8 +75,6 @@ def recver():
 			clt.send("vision", json.dumps(yolo.getresult().objects))
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
-
-from threading import Thread
 
 recvthread = Thread(target=recver, daemon=True)
 recvthread.start()

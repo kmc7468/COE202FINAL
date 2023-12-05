@@ -1,5 +1,6 @@
 import collections
 import socket
+import typing
 
 class Connection:
 	def __init__(self):
@@ -22,7 +23,7 @@ class Connection:
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
 
-	def send(self, tag: str, data: str | bytes, flush: bool = True):
+	def send(self, tag: str, data: typing.Union[str, bytes], flush: bool = True):
 		self.__sendqueue.append((tag, data))
 
 		if flush:
