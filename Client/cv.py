@@ -9,9 +9,9 @@ class YoloObject:
 		self.confidence = confidence
 
 class YoloResult:
-	def __init__(self, objects: list[YoloObject] = [], frame: bytes = b""):
-		self.objects = objects
-		self.frame = frame
+	def __init__(self):
+		self.objects: list[YoloObject] = []
+		self.frame: bytes = None
 
 	def tojson(self) -> str:
 		return json.dumps([{

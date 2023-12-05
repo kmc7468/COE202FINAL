@@ -24,7 +24,7 @@ from car import Car
 
 import cv
 
-cvresult = None
+cvresult: list[cv.YoloObject] = None
 
 from server import Connection as Server
 
@@ -60,7 +60,7 @@ def recver():
 			#print("실행에 성공했습니다." if result else "실행에 실패했습니다.")   
 		elif tag == "vision":
 			json = srv.recvstr()
-			print(f"결과: {json}")
+			print(f"감지 결과: {json}")
 
 			cvresult = cv.fromjson(json)
 		else:
