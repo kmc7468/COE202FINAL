@@ -1,8 +1,10 @@
+import json
+from collections import deque
 import os, sys
 sys.path.append(os.path.abspath("./Common"))
-
 from dotenv import load_dotenv
 
+yoloList = list()
 load_dotenv()
 
 addr = "0.0.0.0"
@@ -21,6 +23,8 @@ srv.accept()
 
 print("클라이언트와 연결되었습니다.")
 
+queue = deque([])
+
 def sender():
 	from camera import Camera
 
@@ -29,13 +33,14 @@ def sender():
 
 	cam.start()
 
-	while True:
-		srv.sendstr("camera")
-		srv.sendbytes(camout.getframe())
+	while True:  
+		srv.sendbytes("camera", camout.getframe())
 
 def recver():
+	global yoloList
 	import car
 	import socket
+
 
 	mycar = car.Car()
 
@@ -45,12 +50,20 @@ def recver():
 		except socket.timeout:
 			continue
 
+# String을 List로 바꾸기 
 		if tag == "command":
 			cmd = srv.recvstr()
+#    data 
 			print(f"실행 요청: {cmd}")
 
 			result = mycar.execute(cmd)
 			print("실행에 성공했습니다." if result else "실행에 실패했습니다.")
+   
+		elif tag == 'yololist':
+			yolo = srv.recvstr()
+			yoloList = json.loads(yolo)
+			print(yoloList)
+   
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 

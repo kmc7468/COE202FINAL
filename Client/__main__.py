@@ -42,12 +42,14 @@ while True:
 
 def recver():
 	import socket
-
+ 
 	while True:
 		try:
 			tag = clt.recvstr()
 		except socket.timeout:
 			continue
+
+
 
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
