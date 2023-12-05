@@ -30,14 +30,17 @@ class Connection:
 			self.sendflush()
 
 	def sendflush(self):
-		for _ in range(len(self.__sendqueue)):
+		try:
 			tag, data = self.__sendqueue.popleft()
-			self._send(tag.encode("utf-8"))
+		except IndexError:
+			return
 
-			if type(data) is str:
-				self._send(data.encode("utf-8"))
-			elif type(data) is bytes:
-				self._send(data)
+		self._send(tag.encode("utf-8"))
+
+		if type(data) is str:
+			self._send(data.encode("utf-8"))
+		elif type(data) is bytes:
+			self._send(data)
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:

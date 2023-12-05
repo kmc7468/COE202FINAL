@@ -41,7 +41,6 @@ print("클라이언트와 연결되었습니다.")
 def worker():
 	while True:  
 		srv.send("camera", camout.getframe())
-		srv.send("vision", None) # test
 
 def recver():
 	import socket
