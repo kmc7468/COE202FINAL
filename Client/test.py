@@ -15,7 +15,7 @@ progress = open("./Client/Resources/기다려주세요.wav", "rb") # 명령어 �
 
 from httpserver import HTTPServer
 
-httpsrv = HTTPServer(1234)
+httpsrv = HTTPServer(12342)
 httpsrv.start()
 
 print("HTTP 서버가 localhost:1234에서 시작되었습니다.")
@@ -59,7 +59,7 @@ recvthread.start()
 from cv import Yolo
 
 yolo = Yolo()
-yolo.start("http://localhost:1234/camera")
+yolo.start("http://localhost:12342/camera")
 
 def yoloupdater():
 	while True:
@@ -76,7 +76,6 @@ print("클라이언트를 종료하려면 Ctrl+C를 누르십시오.")
 while True:
 	cmd = input("명령어: ")
 
-	clt.sendstr("command")
-	clt.sendstr(cmd)
+	clt.send("command", cmd)
 
 	print("명령어가 서버로 전송되었습니다.")

@@ -1,42 +1,35 @@
-print("클라이언트를 준비하는 중입니다. 잠시 기다려 주세요.")
-
+# 경로 설정
 import os, sys
+
 sys.path.append(os.path.abspath("./Common"))
 sys.path.append(os.path.abspath("./Client/yolov5"))
 
+# 환경 변수 설정
 from dotenv import load_dotenv
 
 load_dotenv()
 
+PORT = int(os.getenv("PORT"))
+STT_PROMPT_ALICE = os.getenv("STT_PROMPT_ALICE")
+STT_PROMPT_COMMAND = os.getenv("STT_PROMOT_COMMAND")
+
+# 리소스 로드
 start = open("./Client/Resources/준비되었어요.wav", "rb") # 호출어 인식이 가능한 상태가 되었을 때 재생
 ready = open("./Client/Resources/듣고있어요.wav", "rb") # 명령어 인식이 가능한 상태가 되었을 때 재생
 progress = open("./Client/Resources/기다려주세요.wav", "rb") # 명령어 분석이 시작되었을 때 재생
 
-from httpserver import HTTPServer
+# 어시스턴트 실행
+from assistant import Assistant
 
-PORT = int(os.getenv("PORT"))
+ass = Assistant()
 
-httpsrv = HTTPServer(PORT)
-httpsrv.start()
+# 마이크 실행
+from audio import Audio
 
-print(f"HTTP 서버가 localhost:{PORT}에서 시작되었습니다.")
+audio = Audio()
+audio.startrecord(4.0)
 
-from cv import Yolo
-
-yolo = Yolo()
-yolo.start(f"http://localhost:{PORT}/camera")
-
-def yoloupdater():
-	while True:
-		httpsrv.setyoloframe(yolo.getresult().frame)
-
-from threading import Thread
-
-yoloupdatethread = Thread(target=yoloupdater, daemon=True)
-yoloupdatethread.start()
-
-print("yolov5가 시작되었습니다.")
-
+# 서버 연결
 from client import Connection as Client
 from getpass import getpass
 
@@ -55,6 +48,36 @@ while True:
 	except Exception as e:
 		print(f"서버와 연결하지 못했습니다: {e}")
 		print()
+
+print("클라이언트를 준비하는 중입니다. 잠시 기다려 주세요.")
+
+# HTTP 서버 실행
+from httpserver import HTTPServer
+
+httpsrv = HTTPServer(PORT)
+httpsrv.start()
+
+print(f"HTTP 서버가 localhost:{PORT}에서 시작되었습니다.")
+
+# YOLOv5 실행
+from cv import Yolo
+
+yolo = Yolo()
+yolo.start(f"http://localhost:{PORT}/camera")
+
+def yoloupdater():
+	while True:
+		httpsrv.setyoloframe(yolo.getresult().frame)
+
+from threading import Thread
+
+yoloupdatethread = Thread(target=yoloupdater, daemon=True)
+yoloupdatethread.start()
+
+print("yolov5가 시작되었습니다.")
+
+# 서버로부터의 수신 시작
+clt.send("ready", None)
 
 def recver():
 	import socket
@@ -75,49 +98,37 @@ def recver():
 recvthread = Thread(target=recver, daemon=True)
 recvthread.start()
 
+# 작업 시작
 def worker():
-	import assistant
-	import audio
-
-	ass = assistant.Assistant()
-
-	myaudio = audio.Audio()
-	myaudio.startrecord(4.0)
-
 	playstart = True
 
-	print("클라이언트가 준비되었습니다.")
-	print("클라이언트를 종료하려면 아무 키나 누르십시오.")
-
 	while True:
-		try:
-			if playstart:
-				myaudio.play(start)
+		if playstart:
+			audio.play(start)
 
-				playstart = False
+			playstart = False
 
-			callwav = myaudio.getrecord(2.0, sleep=False)
-			callkor = myaudio.stt(callwav, "너는 장애인을 돕는 로봇의 음성 인식을 담당하게 될거야. 사용자는 너를 부를 때 '엘리스'라고 부를거야. '엘리' 또는 '리스'라고 부를 수도 있어.")
-			if not ("엘리" in callkor or "앨리" in callkor or "리스" in callkor):
-				continue
-
-			myaudio.play(ready)
-			cmdwav = myaudio.getrecord(4.0)
-
-			myaudio.playasync(progress)
-			cmdkor = myaudio.stt(cmdwav, "너는 장애인을 돕는 로봇의 음성 인식을 담당하게 될거야. 로봇은 물건을 찾거나, 특정 거리만큼 이동하는 역할을 수행할 수 있어. 사용자는 너에게 관련된 명령을 내릴거고, 너는 그 명령을 텍스트로 잘 변환해주면 돼. 예시는 다음과 같아: '앞으로 10만큼 이동해줘', '스마트폰 찾아줘', '뒤로 10만큼 이동하고 파란 상자를 찾아줘'. 하지만, 이 사용자의 명령이 이 예시들만으로 국한되지는 않아.")
-			print(f"인식 결과: {cmdkor}")
-
-			fml = ass.send(cmdkor)
-			print(f"번역 결과: {fml}")
-
-			clt.send("command", fml)
-
+		callwav = audio.getrecord(2.0, sleep=False)
+		callkor = audio.stt(callwav, STT_PROMPT_ALICE)
+		if "엘리" in callkor or "앨리" in callkor or "리스" in callkor:
 			playstart = True
-		except Exception as e:
-			print(f"명령을 처리하지 못했습니다: {e}")
+		else:
+			continue
+
+		audio.play(ready)
+		cmdwav = audio.getrecord(4.0)
+
+		audio.playasync(progress)
+		cmdkor = audio.stt(cmdwav, STT_PROMPT_COMMAND)
+		print(f"인식 결과: {cmdkor}")
+
+		fml = ass.send(cmdkor)
+		print(f"번역 결과: {fml}")
+
+		clt.send("command", fml)
 
 workthread = Thread(target=worker, daemon=True)
 workthread.start()
 
-input()
+print("클라이언트가 준비되었습니다.")
+input("클라이언트를 종료하려면 아무 키나 누르십시오.\n")

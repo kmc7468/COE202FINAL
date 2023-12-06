@@ -1,28 +1,52 @@
-import modi
-import time
 import cv
+import time
+import threading
 
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
 	return [line.split(" ") for line in lines]
 
-def detected(obj, var, condition): #returns whether object is detected in the middle
-	pos = position(obj, var, condition)
-	if pos==False:
-		return False
-	return 300<pos<340
+def normalizeangle(angle: int) -> int:
+	return (angle + 180) % 360 - 180
 
-def position(obj, var, condition): #returns x coordinates of the object, or False if not detected
-	with condition:
-		condition.wait()
+def findobject(cvpipe: cv.Pipe, name: str) -> cv.Object:
+	result = cvpipe.getresult()
 
-		for asdf in var:
-			if asdf.name == obj:
-				return asdf.location[0]
+	for object in result.objects:
+		if object.name == name:
+			return object
+	else:
 		return None
+
+class CarTest:
+	def __init__(self, cvpipe: cv.Pipe):
+		self.__cvpipe = cvpipe
+
+	def execute(self, cmd: str):
+		thread = threading.Thread(target=self.__execute, args=(cmd,), daemon=True)
+		thread.start()
+
+	def __execute(self, cmd: str) -> bool:
+		commands = parsecmd(cmd)
+
+		for command in commands:
+			if command[0] == "move":
+				print(f"이동합니다: {command[1]} {command[2]}")
+			elif command[0] == "find":
+				print(f"찾습니다: {command[1]}")
+
+				result = findobject(self.__cvpipe, command[1])
+				if result is not None:
+					print(f"결과: {result.location} {result.confidence}")
+				else:
+					print(f"찾지 못했습니다.")
+
+		return True
 
 class Car:
 	def __init__(self, cvresult, condition):
+		import modi
+
 		self.__bundle = modi.MODI()
 		self.__wheels = self.__bundle.motors[0]
 		self.__arms = self.__bundle.motors[1]
@@ -67,7 +91,27 @@ class Car:
 				self.bring(command[1])
 
 		return True # returns whether the command is successully executed
-			
+
+	def bring(self,obj):
+		result = detected(obj, self.__cvresult, self.__condition)
+		print(f"탐지 결과 {result}")
+
+		while not detected(obj, self.__cvresult, self.__condition):
+			self.rotateLeft()
+
+		forward_time=0
+		while not self.close():
+			self.forward()
+			forward_time+=1
+
+		self.grab()
+		self.turnAround()
+		for i in range(forward_time):
+			self.forward()
+
+		self.ungrab()
+		self.turnAround()
+
 	def disableMotor(self):
 		self.__wheels.speed = (0, 0)
 

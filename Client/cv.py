@@ -2,15 +2,15 @@ import detect
 import json
 import threading
 
-class YoloObject:
+class Object:
 	def __init__(self, name: str, location: (float, float), confidence: float):
 		self.name = name
 		self.location = location
 		self.confidence = confidence
 
-class YoloResult:
+class Result:
 	def __init__(self):
-		self.objects: list[YoloObject] = []
+		self.objects: list[Object] = []
 		self.frame: bytes = None
 
 	def tojson(self) -> str:
@@ -23,7 +23,7 @@ class YoloResult:
 class Yolo:
 	def __init__(self):
 		self.__result = None
-		self.__newresult = YoloResult()
+		self.__newresult = Result()
 		self.__condition = threading.Condition()
   
 		self.__filter = ["cup", "bottle", "mouse"]
@@ -42,14 +42,14 @@ class Yolo:
 	def setfilter(self, filter: list[str]):
 		self.__filter = filter
 
-	def getresult(self) -> YoloResult:
+	def getresult(self) -> Result:
 		with self.__condition:
 			self.__condition.wait()
 
 			return self.__result
 
 	def addobject(self, name: str, location: (float, float), confidence: float):
-		self.__newresult.objects.append(YoloObject(name, location, confidence))
+		self.__newresult.objects.append(Object(name, location, confidence))
 
 	def setframe(self, frame: bytes):
 		self.__newresult.frame = frame
@@ -57,7 +57,7 @@ class Yolo:
 	def readyresult(self):
 		with self.__condition:
 			self.__result = self.__newresult
-			self.__newresult = YoloResult()
+			self.__newresult = Result()
 			self.__condition.notify_all()
 
 	def __runyolo(self, ready: threading.Condition, source):
