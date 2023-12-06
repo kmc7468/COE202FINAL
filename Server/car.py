@@ -6,8 +6,8 @@ def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
 	return [line.split(" ") for line in lines]
 
-def detected(obj): #returns whether object is detected in the middle
-	pos = position(obj)
+def detected(obj, var, condition): #returns whether object is detected in the middle
+	pos = position(obj, var, condition)
 	if pos==False:
 		return False
 	return 300<pos<340
@@ -17,7 +17,7 @@ def position(obj, var, condition): #returns x coordinates of the object, or Fals
 		condition.wait()
 
 		for asdf in var:
-			if asdf.name == var:
+			if asdf.name == obj:
 				return asdf.location[0]
 		return None
 
@@ -119,7 +119,7 @@ class Car:
 		self.__arms.speed = (0,0)
 
 	def bring(self,obj):
-		while not detected(obj):
+		while not detected(obj, self.__cvresult, self.__condition):
 			self.rotateLeft()
 
 		forward_time=0
