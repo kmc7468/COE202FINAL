@@ -19,9 +19,12 @@ class Car:
 		self.__bundle = modi.MODI()
 		self.__wheels = self.__bundle.motors[0]
 		self.__arms = self.__bundle.motors[1]
-		self.__ir = self.__bundle.irs[0]
+		self.__ir1 = self.__bundle.irs[0]
+		self.__ir2 = self.__bundle.irs[1]
 		self.__arms.speed = (0,0)
 		self.__wheels.speed = (0,0)
+		self.gyro = self.__bundle.gyros[0]
+		dummy = self.gyro.yaw
 
 	def execute(self, cmd: str) -> bool:
 		commands = parsecmd(cmd)
@@ -79,13 +82,22 @@ class Car:
 		time.sleep(0.7)
 		self.disableMotor()
 
+	def convert(self,angle):
+		return (angle+180)%360-180
+
 	def turnAround(self):
-		self.__wheels.speed = (35, 35)
-		time.sleep(6.2)
+		current = self.gyro.yaw
+		self.__wheels.speed = (50, 50)
+		delta = self.convert(self.gyro.yaw - current)
+		while True:
+			delta = self.convert(self.gyro.yaw - current)
+			print(delta)
+			if 155<delta:
+				break
 		self.disableMotor()
 
 	def close(self): #returns whether object is close enough to object
-		return self.__ir.proximity>11
+		return self.__ir1.proximity>11 or self.__ir2.proximity>11
 	
 	def grab(self):
 		self.__arms.speed = (30, -28)
