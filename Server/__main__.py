@@ -51,12 +51,15 @@ def worker():
 	while True:  
 		srv.send("camera", camout.getframe())
 
+		cmd = ""
+
 		with lock:
 			if command != "":
 				cmd = command
 				command = ""
-
-		car.execute(cmd)
+		
+		if cmd != "":
+			car.execute(cmd)
 
 def recver():
 	import socket
