@@ -53,8 +53,10 @@ def worker():
 
 		with lock:
 			if command != "":
-				car.execute(command)
+				cmd = command
 				command = ""
+
+		car.execute(cmd)
 
 def recver():
 	import socket
