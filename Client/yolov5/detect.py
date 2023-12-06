@@ -24,6 +24,7 @@ objects = list()
 @smart_inference_mode()
 def run(
         pipe,
+        filter,
         ready,
         weights=ROOT / 'yolov5s.pt',  # model path or triton URL
         source=ROOT / 'data/images',  # file/dir/URL/glob/screen/0(webcam)
@@ -73,6 +74,13 @@ def run(
     stride, names, pt = model.stride, model.names, model.pt
     imgsz = check_img_size(imgsz, s=stride)  # check image size
 
+    # Run inference
+    model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
+    seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
+
+    with ready:
+        ready.notify()
+
     # Dataloader
     bs = 1  # batch_size
     if webcam:
@@ -84,13 +92,6 @@ def run(
     else:
         dataset = LoadImages(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
     vid_path, vid_writer = [None] * bs, [None] * bs
-
-    # Run inference
-    model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
-    seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
-
-    with ready:
-        ready.notify()
     
     for path, im, im0s, vid_cap, s in dataset:
         with dt[0]:
@@ -140,9 +141,12 @@ def run(
                     label = names[c] if hide_conf else f'{names[c]}'
                     confidence = float(conf)
                     
+                    if label not in filter:
+                        continue
+
                     firstPoint = (float(xyxy[0]), float(xyxy[1]))
                     secondPoint = (float(xyxy[2]), float(xyxy[3]))
-                    midPoint = ((firstPoint[0]+secondPoint[0])/2, (firstPoint[1]+secondPoint[1])/2)
+                    midPoint = ((firstPoint[0] + secondPoint[0]) / 2, (firstPoint[1] + secondPoint[1]) / 2)
 
                     pipe.addobject(label, midPoint, confidence)
 

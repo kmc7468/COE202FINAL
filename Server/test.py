@@ -4,6 +4,9 @@
 import os, sys
 sys.path.append(os.path.abspath("./Common"))
 
+from subprocess import check_call
+check_call([sys.executable, "-m", "pip", "install", "-r", "./Server/requirements.test.txt"])
+
 addr = "localhost"
 port = 12345
 password = "test"

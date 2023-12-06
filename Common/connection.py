@@ -1,6 +1,13 @@
+import collections
 import socket
+import threading
+import typing
 
 class Connection:
+	def __init__(self):
+		self.__sendqueue = collections.deque()
+		self.__sendlock = threading.Lock()
+
 	def __del__(self):
 		if hasattr(self, "__socket") and self.__socket is not None:
 			self.__socket.close()
@@ -18,11 +25,26 @@ class Connection:
 	def _setcipher(self, cipher):
 		self.__cipher = cipher
 
-	def sendstr(self, string: str):
-		self._send(string.encode("utf-8"))
+	def send(self, tag: str, data: typing.Union[str, bytes], flush: bool = True):
+		self.__sendqueue.append((tag, data))
 
-	def sendbytes(self, data: bytes):
-		self._send(data)
+		if flush:
+			self.sendflush()
+
+	def sendflush(self):
+		while True:
+			try:
+				tag, data = self.__sendqueue.popleft()
+			except IndexError:
+				return
+
+			with self.__sendlock:
+				self._send(tag.encode("utf-8"))
+
+				if type(data) is str:
+					self._send(data.encode("utf-8"))
+				elif type(data) is bytes:
+					self._send(data)
 
 	def _send(self, data: bytes, encrypt: bool = True):
 		if encrypt:

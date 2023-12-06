@@ -21,6 +21,22 @@ httpsrv.start()
 
 print(f"HTTP 서버가 localhost:{PORT}에서 시작되었습니다.")
 
+from cv import Yolo
+
+yolo = Yolo()
+yolo.start(f"http://localhost:{PORT}/camera")
+
+def yoloupdater():
+	while True:
+		httpsrv.setyoloframe(yolo.getresult().frame)
+
+from threading import Thread
+
+yoloupdatethread = Thread(target=yoloupdater, daemon=True)
+yoloupdatethread.start()
+
+print("yolov5가 시작되었습니다.")
+
 from client import Connection as Client
 from getpass import getpass
 
@@ -42,7 +58,7 @@ while True:
 
 def recver():
 	import socket
-
+ 
 	while True:
 		try:
 			tag = clt.recvstr()
@@ -51,29 +67,15 @@ def recver():
 
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
+		elif tag == "vision":
+			clt.send("vision", yolo.getresult().tojson())
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
-
-from threading import Thread
 
 recvthread = Thread(target=recver, daemon=True)
 recvthread.start()
 
-from cv import Yolo
-
-yolo = Yolo()
-yolo.start(f"http://localhost:{PORT}/camera")
-
-def yoloupdater():
-	while True:
-		httpsrv.setyoloframe(yolo.getresult().frame)
-
-yoloupdatethread = Thread(target=yoloupdater, daemon=True)
-yoloupdatethread.start()
-
-print("yolov5가 시작되었습니다.")
-
-def sender():
+def worker():
 	import assistant
 	import audio
 
@@ -109,14 +111,13 @@ def sender():
 			fml = ass.send(cmdkor)
 			print(f"번역 결과: {fml}")
 
-			clt.sendstr("command")
-			clt.sendstr(fml)
+			clt.send("command", fml)
 
 			playstart = True
 		except Exception as e:
 			print(f"명령을 처리하지 못했습니다: {e}")
 
-sendthread = Thread(target=sender, daemon=True)
-sendthread.start()
+workthread = Thread(target=worker, daemon=True)
+workthread.start()
 
 input()

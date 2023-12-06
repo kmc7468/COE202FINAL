@@ -4,16 +4,28 @@
 - **Server:** MODI와 연결된 Device입니다. 주변 환경을 인식하고, 사용자의 명령을 수행합니다.
 
 ## 초기 설정 방법
+최초 1회만 하면 됩니다.
+
+### Client
 ```
 git clone https://github.com/kmc7468/COE202FINAL.git
-cd COE202FINAL
-pip install -r requirements.txt
+pip install -r COE202FINAL/Client/yolov5/requirements.txt
+pip install -r Client/requirements.txt
 ```
-최초 1회만 하면 됩니다.
+
+### Server
+```
+git clone https://github.com/kmc7468/COE202FINAL.git
+pip install -r Server/requirements.txt
+```
 
 ## 실행 방법
 - Client: `python Client`
 - Server: `python Server`
+
+## 테스트 방법
+- Client: `python Client/test.py`
+- Server: `python Server/test.py`
 
 ## git 사용 방법
 ### 변경사항 서버로 업로드
