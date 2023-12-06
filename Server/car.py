@@ -1,6 +1,6 @@
 import cv
-import time
 import threading
+import time
 
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
@@ -44,53 +44,57 @@ class CarTest:
 		return True
 
 class Car:
-	def __init__(self, cvresult, condition):
-		import modi
+	def __init__(self, cvpipe: cv.Pipe):
+		from modi import MODI
 
-		self.__bundle = modi.MODI()
+		self.__bundle = MODI()
 		self.__wheels = self.__bundle.motors[0]
 		self.__arms = self.__bundle.motors[1]
 		self.__ir1 = self.__bundle.irs[0]
 		self.__ir2 = self.__bundle.irs[1]
-		self.__arms.speed = (0,0)
-		self.__wheels.speed = (0,0)
-		self.gyro = self.__bundle.gyros[0]
-		dummy = self.gyro.yaw
-		self.__cvresult = cvresult
-		self.__condition = condition
+		self.__gyro = self.__bundle.gyros[0]
 
-	def execute(self, cmd: str) -> bool:
+		self.__wheels.speed = (0, 0)
+		self.__arms.speed = (0, 0)
+		_ = self.__gyro.yaw
+
+		self.__cvpipe = cvpipe
+
+	def execute(self, cmd: str):
+		thread = threading.Thread(target=self.__execute, args=(cmd,), daemon=True)
+		thread.start()
+
+	def __execute(self, cmd: str) -> bool:
 		commands = parsecmd(cmd)
 
 		for command in commands:
 			if command[0]=="move":
-				if command[1]=="forward":
-					for i in range(int(command[2])):
+				if command[1] == "forward":
+					for _ in range(int(command[2])):
 						self.forward()
 						time.sleep(0.5)
-				elif command[1]=="back":
-					for i in range(int(command[2])):
+				elif command[1] == "back":
+					for _ in range(int(command[2])):
 						self.back()
 						time.sleep(0.5)
-				elif command[1]=="right":
+				elif command[1] == "right":
 					self.__wheels.speed = (-35, -35)
 					time.sleep(3.1)
 					self.disableMotor()
-					for i in range(int(command[2])):
+					for _ in range(int(command[2])):
 						self.forward()
 						time.sleep(0.5)
-				elif command[1]=="left":
+				elif command[1] == "left":
 					self.__wheels.speed = (35, 35)
 					time.sleep(3.1)
 					self.disableMotor()
-					for i in range(int(command[2])):
+					for _ in range(int(command[2])):
 						self.forward()
 						time.sleep(0.5)
-
-			if command[0]=="find":
+			elif command[0]=="find":
 				self.bring(command[1])
 
-		return True # returns whether the command is successully executed
+		return True
 
 	def bring(self,obj):
 		result = detected(obj, self.__cvresult, self.__condition)
@@ -139,11 +143,11 @@ class Car:
 		return (angle+180)%360-180
 
 	def turnAround(self):
-		current = self.gyro.yaw
+		current = self.__gyro.yaw
 		self.__wheels.speed = (50, 50)
-		delta = self.convert(self.gyro.yaw - current)
+		delta = self.convert(self.__gyro.yaw - current)
 		while True:
-			delta = self.convert(self.gyro.yaw - current)
+			delta = self.convert(self.__gyro.yaw - current)
 			print(delta)
 			if 155<delta:
 				break

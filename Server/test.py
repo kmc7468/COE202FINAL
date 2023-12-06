@@ -48,7 +48,7 @@ car = CarTest(cvpipe) # MODI와 연결하려면 Car를 사용해야 함
 # 클라이언트로부터의 수신 시작
 from threading import Condition, Thread
 
-ready = Condition()
+cltready = Condition()
 
 def recver():
 	import socket
@@ -60,8 +60,8 @@ def recver():
 			continue
 
 		if tag == "ready":
-			with ready:
-				ready.notify()
+			with cltready:
+				cltready.notify()
 		elif tag == "command":
 			car.execute(srv.recvstr()) 
 		elif tag == "vision":
@@ -74,8 +74,8 @@ recvthread.start()
 
 # 작업 시작
 def worker():
-	with ready:
-		ready.wait()
+	with cltready:
+		cltready.wait()
 
 	while True:
 		_, frame = cam.read()
@@ -87,4 +87,4 @@ workthread = Thread(target=worker, daemon=True)
 workthread.start()
 
 print("서버가 준비되었습니다.")
-input("서버를 종료하려면 아무 키나 누르십시오.")
+input("서버를 종료하려면 아무 키나 누르십시오.\n")

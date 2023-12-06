@@ -74,7 +74,7 @@ from threading import Thread
 yoloupdatethread = Thread(target=yoloupdater, daemon=True)
 yoloupdatethread.start()
 
-print("yolov5가 시작되었습니다.")
+print("YOLOv5가 시작되었습니다.")
 
 # 서버로부터의 수신 시작
 clt.send("ready", None)
