@@ -18,13 +18,15 @@ camout = cam.getoutput()
 
 cam.start()
 
-from car import Car
-
-#car = Car()
-
 import cv
+from threading import Condition
 
 cvresult: list[cv.YoloObject] = None
+cvresultcondition = Condition()
+
+from car import Car
+
+car = Car(cvresult, cvresultcondition)
 
 from server import Connection as Server
 
@@ -38,12 +40,27 @@ srv.accept()
 
 print("클라이언트와 연결되었습니다.")
 
+from threading import Lock
+
+command = ""
+lock = Lock()
+
 def worker():
+	global command
+
 	while True:  
 		srv.send("camera", camout.getframe())
 
+		with lock:
+			if command != "":
+				car.execute(command)
+				command = ""
+
 def recver():
 	import socket
+
+	global command
+	global cvresult
 
 	while True:
 		try:
@@ -55,13 +72,18 @@ def recver():
 			cmd = srv.recvstr()
 			print(f"실행 요청: {cmd}")
 
-			#result = car.execute(cmd)
-			#print("실행에 성공했습니다." if result else "실행에 실패했습니다.")   
+			with lock:
+				command = cmd
+
+			# result = car.execute(cmd)
+			# print("실행에 성공했습니다." if result else "실행에 실패했습니다.")   
 		elif tag == "vision":
 			json = srv.recvstr()
 			print(f"감지 결과: {json}")
 
-			cvresult = cv.fromjson(json)
+			with cvresultcondition:
+				cvresult = cv.fromjson(json)
+				cvresultcondition.notify_all()
 		else:
 			raise Exception(f"Unknown tag '{tag}'")
 
@@ -73,4 +95,7 @@ recvthread = Thread(target=recver, daemon=True)
 workthread.start()
 recvthread.start()
 
-input("서버를 종료하려면 아무 키나 누르십시오.")
+#input("서버를 종료하려면 아무 키나 누르십시오.")
+while True:
+	input()
+	srv.send("vision", None)

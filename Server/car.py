@@ -1,5 +1,6 @@
 import modi
 import time
+import cv
 
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
@@ -11,11 +12,17 @@ def detected(obj): #returns whether object is detected in the middle
 		return False
 	return 300<pos<340
 
-def position(obj): #returns x coordinates of the object, or False if not detected
-	pass
+def position(obj, var, condition): #returns x coordinates of the object, or False if not detected
+	with condition:
+		condition.wait()
+
+		for asdf in var:
+			if asdf.name == var:
+				return asdf.location[0]
+		return None
 
 class Car:
-	def __init__(self):
+	def __init__(self, cvresult, condition):
 		self.__bundle = modi.MODI()
 		self.__wheels = self.__bundle.motors[0]
 		self.__arms = self.__bundle.motors[1]
@@ -25,6 +32,8 @@ class Car:
 		self.__wheels.speed = (0,0)
 		self.gyro = self.__bundle.gyros[0]
 		dummy = self.gyro.yaw
+		self.__cvresult = cvresult
+		self.__condition = condition
 
 	def execute(self, cmd: str) -> bool:
 		commands = parsecmd(cmd)
