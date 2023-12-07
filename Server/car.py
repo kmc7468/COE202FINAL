@@ -107,7 +107,7 @@ class Car:
 	
 	def rotateLeft(self): #rotate to the left by ~10 degrees
 		self.__wheels.speed = (35, 35)
-		time.sleep(0.7)
+		time.sleep(0.4)
 		self.disableMotor()
 
 	def rotateRight(self): #rotate to the right by ~10 degrees
