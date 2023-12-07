@@ -17,7 +17,6 @@ STT_PROMPT_COMMAND = os.getenv("STT_PROMOT_COMMAND")
 start = open("./Client/Resources/준비되었어요.wav", "rb") # 호출어 인식이 가능한 상태가 되었을 때 재생
 ready = open("./Client/Resources/듣고있어요.wav", "rb") # 명령어 인식이 가능한 상태가 되었을 때 재생
 progress = open("./Client/Resources/기다려주세요.wav", "rb") # 명령어 분석이 시작되었을 때 재생
-sent = open("./Client/Resources/요청했어요.wav", "rb") # 명령어를 서버로 전송했을 때 재생
 busy = open("./Client/Resources/바빠요.wav", "rb") # 서버가 명령어를 처리 중일 때 재생
 success = open("./Client/Resources/성공했어요.wav", "rb") # 명령어가 성공적으로 처리되었을 때 재생
 fail = open("./Client/Resources/실패했어요.wav", "rb") # 명령어가 처리되지 않았을 때 재생
@@ -151,7 +150,6 @@ def worker():
 			print(f"번역 결과: {fml}")
 
 			clt.send("command", fml)
-			audio.play(sent)
 
 workthread = Thread(target=worker, daemon=True)
 workthread.start()
