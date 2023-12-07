@@ -150,7 +150,10 @@ class Car:
 		self.disableMotor()
 
 	def close(self): #returns whether object is close enough to object
-		return self.__ir1.proximity>11 or self.__ir2.proximity>11
+		pr1 = self.__ir1.proximity
+		pr2 = self.__ir2.proximity
+		print(f"1: {pr1} 2: {pr2}")
+		return pr1>11 or pr2>11
 	
 	def grab(self):
 		self.__arms.speed = (30, -28)
