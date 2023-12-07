@@ -9,13 +9,15 @@
 ### Client
 ```
 git clone https://github.com/kmc7468/COE202FINAL.git
-pip install -r COE202FINAL/Client/yolov5/requirements.txt
+cd COE202FINAL
+pip install -r Client/yolov5/requirements.txt
 pip install -r Client/requirements.txt
 ```
 
 ### Server
 ```
 git clone https://github.com/kmc7468/COE202FINAL.git
+cd COE202FINAL
 pip install -r Server/requirements.txt
 ```
 
