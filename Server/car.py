@@ -39,6 +39,8 @@ class CarTest:
 				else:
 					print(f"찾지 못했습니다.")
 
+		time.sleep(2)
+
 		return True
 
 class Car:

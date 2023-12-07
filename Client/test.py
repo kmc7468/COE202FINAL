@@ -81,11 +81,7 @@ def recver():
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
 		elif tag == "command":
-			global carresult
-
-			with carresultcondition:
-				carresult = clt.recvstr()
-				carresultcondition.notify()
+			print(f"결과: {clt.recvstr()}")
 		elif tag == "vision":
 			clt.send("vision", yolo.getresult().tojson())
 		else:
@@ -101,8 +97,3 @@ print("클라이언트를 종료하려면 Ctrl+C를 누르십시오.")
 while True:
 	cmd = input("명령어: ")
 	clt.send("command", cmd)
-
-	with carresultcondition:
-		carresultcondition.wait()
-
-		print(f"결과: {carresult}")

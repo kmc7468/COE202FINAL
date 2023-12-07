@@ -17,6 +17,10 @@ STT_PROMPT_COMMAND = os.getenv("STT_PROMOT_COMMAND")
 start = open("./Client/Resources/준비되었어요.wav", "rb") # 호출어 인식이 가능한 상태가 되었을 때 재생
 ready = open("./Client/Resources/듣고있어요.wav", "rb") # 명령어 인식이 가능한 상태가 되었을 때 재생
 progress = open("./Client/Resources/기다려주세요.wav", "rb") # 명령어 분석이 시작되었을 때 재생
+sent = open("./Client/Resources/요청했어요.wav", "rb") # 명령어를 서버로 전송했을 때 재생
+busy = open("./Client/Resources/바빠요.wav", "rb") # 서버가 명령어를 처리 중일 때 재생
+success = open("./Client/Resources/성공했어요.wav", "rb") # 명령어가 성공적으로 처리되었을 때 재생
+fail = open("./Client/Resources/실패했어요.wav", "rb") # 명령어가 처리되지 않았을 때 재생
 
 # 어시스턴트 실행
 from assistant import Assistant
@@ -69,7 +73,7 @@ def yoloupdater():
 	while True:
 		httpsrv.setyoloframe(yolo.getresult().frame)
 
-from threading import Condition, Thread
+from threading import Thread, Lock
 
 yoloupdatethread = Thread(target=yoloupdater, daemon=True)
 yoloupdatethread.start()
@@ -77,8 +81,8 @@ yoloupdatethread.start()
 print("YOLOv5가 시작되었습니다.")
 
 # 서버로부터의 수신 시작
-carresult = None
-carresultcondition = Condition()
+audiolock = Lock()
+carrequest = 0
 
 clt.send("ready", None)
 
@@ -94,11 +98,21 @@ def recver():
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
 		elif tag == "command":
-			global carresult
+			result = clt.recvstr()
+			print(f"실행 결과: {result}")
 
-			with carresultcondition:
-				carresult = clt.recvstr()
-				carresultcondition.notify()
+			with audiolock:
+				if carrequest == 1:
+					if result == "success":
+						audio.play(success)
+					elif result == "fail":
+						audio.play(fail)
+					elif result == "busy":
+						audio.play(busy)
+					else:
+						raise Exception(f"Unknown result '{result}'")
+
+				carrequest = carrequest - 1
 		elif tag == "vision":
 			clt.send("vision", yolo.getresult().tojson())
 		else:
@@ -112,34 +126,32 @@ def worker():
 	playstart = True
 
 	while True:
-		if playstart:
-			audio.play(start)
+		with audiolock:
+			if playstart:
+				audio.play(start)
 
-			playstart = False
+				playstart = False
 
-		callwav = audio.getrecord(2.0, sleep=False)
-		callkor = audio.stt(callwav, STT_PROMPT_ALICE)
-		if "엘리" in callkor or "앨리" in callkor or "리스" in callkor:
-			playstart = True
-		else:
-			continue
+			callwav = audio.getrecord(2.0, sleep=False)
+			callkor = audio.stt(callwav, STT_PROMPT_ALICE)
+			if "엘리" in callkor or "앨리" in callkor or "리스" in callkor:
+				playstart = True
+				carrequest = carrequest + 1
+			else:
+				continue
 
-		audio.play(ready)
-		cmdwav = audio.getrecord(4.0)
+			audio.play(ready)
+			cmdwav = audio.getrecord(4.0)
 
-		audio.playasync(progress)
-		cmdkor = audio.stt(cmdwav, STT_PROMPT_COMMAND)
-		print(f"인식 결과: {cmdkor}")
+			audio.playasync(progress)
+			cmdkor = audio.stt(cmdwav, STT_PROMPT_COMMAND)
+			print(f"인식 결과: {cmdkor}")
 
-		fml = ass.send(cmdkor)
-		print(f"번역 결과: {fml}")
+			fml = ass.send(cmdkor)
+			print(f"번역 결과: {fml}")
 
-		clt.send("command", fml)
-
-		with carresultcondition:
-			carresultcondition.wait()
-
-			print(f"실행 결과: {carresult}")
+			clt.send("command", fml)
+			audio.play(sent)
 
 workthread = Thread(target=worker, daemon=True)
 workthread.start()
