@@ -148,7 +148,7 @@ class Car:
 	def bring(self,obj):
 		while True:
 			result=findobject(self.__cvpipe, obj)
-			if result is not None and 270<result.location[0]<370:
+			if result is not None and 260<result.location[0]<380:
 				break
 			self.rotateLeft()
 			time.sleep(0.5)
