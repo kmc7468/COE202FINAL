@@ -1,6 +1,8 @@
 import cv
+import server
 import threading
 import time
+import typing
 
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
@@ -22,11 +24,7 @@ class CarTest:
 	def __init__(self, cvpipe: cv.Pipe):
 		self.__cvpipe = cvpipe
 
-	def execute(self, cmd: str):
-		thread = threading.Thread(target=self.__execute, args=(cmd,), daemon=True)
-		thread.start()
-
-	def __execute(self, cmd: str) -> bool:
+	def execute(self, cmd: str) -> bool:
 		commands = parsecmd(cmd)
 
 		for command in commands:
@@ -60,11 +58,7 @@ class Car:
 
 		self.__cvpipe = cvpipe
 
-	def execute(self, cmd: str):
-		thread = threading.Thread(target=self.__execute, args=(cmd,), daemon=True)
-		thread.start()
-
-	def __execute(self, cmd: str) -> bool:
+	def execute(self, cmd: str) -> bool:
 		commands = parsecmd(cmd)
 
 		for command in commands:
@@ -182,3 +176,29 @@ class Car:
 
 		self.ungrab()
 		self.turnAround()
+
+class Executor:
+	def __init__(self, car: typing.Union[Car, CarTest], srv: server.Connection):
+		self.__car = car
+		self.__srv = srv
+
+		self.__thread = None
+	
+	def execute(self, cmd: str):
+		if self.__thread is None:
+			self.__thread = threading.Thread(target=self.__execute, args=(cmd,), daemon=True)
+			self.__thread.start()
+		else:
+			self.__srv.send("command", "busy")
+
+	def __execute(self, cmd: str):
+		try:
+			result = self.__car.execute(cmd)
+		except:
+			self.__srv.send("command", "error")
+
+			raise
+		else:
+			self.__srv.send("command", "success" if result else "fail")
+		finally:
+			self.__thread = None

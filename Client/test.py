@@ -56,7 +56,7 @@ def yoloupdater():
 	while True:
 		httpsrv.setyoloframe(yolo.getresult().frame)
 
-from threading import Thread
+from threading import Condition, Thread
 
 yoloupdatethread = Thread(target=yoloupdater, daemon=True)
 yoloupdatethread.start()
@@ -64,6 +64,9 @@ yoloupdatethread.start()
 print("YOLOv5가 시작되었습니다.")
 
 # 서버로부터의 수신 시작
+carresult = None
+carresultcondition = Condition()
+
 clt.send("ready", None)
 
 def recver():
@@ -77,6 +80,12 @@ def recver():
 
 		if tag == "camera":
 			httpsrv.setcameraframe(clt.recvbytes())
+		elif tag == "command":
+			global carresult
+
+			with carresultcondition:
+				carresult = clt.recvstr()
+				carresultcondition.notify()
 		elif tag == "vision":
 			clt.send("vision", yolo.getresult().tojson())
 		else:
@@ -92,3 +101,8 @@ print("클라이언트를 종료하려면 Ctrl+C를 누르십시오.")
 while True:
 	cmd = input("명령어: ")
 	clt.send("command", cmd)
+
+	with carresultcondition:
+		carresultcondition.wait()
+
+		print(f"결과: {carresult}")

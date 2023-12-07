@@ -41,9 +41,10 @@ import cv
 cvpipe = cv.Pipe(srv)
 
 # 하드웨어 초기화
-from car import CarTest
+from car import CarTest, Executor as CarExecutor
 
 car = CarTest(cvpipe) # MODI와 연결하려면 Car를 사용해야 함
+carexe = CarExecutor(car, srv)
 
 # 클라이언트로부터의 수신 시작
 from threading import Condition, Thread
@@ -59,11 +60,11 @@ def recver():
 		except socket.timeout:
 			continue
 
-		if tag == "ready":
+		if tag == "command":
+			carexe.execute(srv.recvstr())
+		elif tag == "ready":
 			with cltready:
 				cltready.notify()
-		elif tag == "command":
-			car.execute(srv.recvstr()) 
 		elif tag == "vision":
 			cvpipe.setresult(cv.fromjson(srv.recvstr()))
 		else:

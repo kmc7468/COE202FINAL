@@ -41,9 +41,10 @@ import cv
 cvpipe = cv.Pipe(srv)
 
 # 하드웨어 초기화
-from car import Car
+from car import Car, Executor as CarExecutor
 
 car = Car(cvpipe)
+carexe = CarExecutor(car, srv)
 
 # 클라이언트로부터의 수신 시작
 from threading import Condition, Thread
@@ -59,14 +60,14 @@ def recver():
 		except socket.timeout:
 			continue
 
-		if tag == "ready":
-			with cltready:
-				cltready.notify()
-		elif tag == "command":
+		if tag == "command":
 			cmd = srv.recvstr()
 			print(f"실행 요청: {cmd}")
 
-			car.execute(cmd)
+			carexe.execute(cmd)
+		elif tag == "ready":
+			with cltready:
+				cltready.notify()
 		elif tag == "vision":
 			json = srv.recvstr()
 			print(f"감지 결과: {json}")
