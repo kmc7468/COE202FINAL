@@ -4,12 +4,24 @@ import threading
 import time
 import typing
 
-def isinvalidcmd(cmd: str) -> bool:
-	return "unknown" in cmd or "others" in cmd
-
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
-	return [line.split(" ") for line in lines]
+	cmds = [line.split(" ") for line in lines]
+
+	try:
+		for cmd in cmds:
+			if cmd[0] == "move":
+				if cmd[1] == "others":
+					return None
+			elif cmd[0] == "bring":
+				if cmd[1] == "others":
+					return None
+			else:
+				return None
+	except:
+		return None
+	else:
+		return cmds
 
 def normalizeangle(angle: int) -> int:
 	return (angle + 180) % 360 - 180
@@ -28,24 +40,23 @@ class CarTest:
 		self.__cvpipe = cvpipe
 
 	def execute(self, cmd: str) -> bool:
-		if isinvalidcmd(cmd):
-			return False
-
 		commands = parsecmd(cmd)
+		if commands is None:
+			return False
 
 		for command in commands:
 			if command[0] == "move":
 				print(f"이동합니다: {command[1]} {command[2]}")
-			elif command[0] == "find":
-				print(f"찾습니다: {command[1]}")
+			elif command[0] == "bring":
+				print(f"가져옵니다: {command[1]}")
 
 				result = findobject(self.__cvpipe, command[1])
 				if result is not None:
 					print(f"결과: {result.location} {result.confidence}")
 				else:
-					print(f"찾지 못했습니다.")
+					print(f"가져오지 못했습니다.")
 
-		time.sleep(20)
+					return False
 
 		return True
 
@@ -67,10 +78,9 @@ class Car:
 		self.__cvpipe = cvpipe
 
 	def execute(self, cmd: str) -> bool:
-		if isinvalidcmd(cmd):
-			return False
-
 		commands = parsecmd(cmd)
+		if commands is None:
+			return False
 
 		for command in commands:
 			if command[0]=="move":
@@ -78,7 +88,7 @@ class Car:
 					for _ in range(int(command[2])):
 						self.forward()
 						time.sleep(0.5)
-				elif command[1] == "back":
+				elif command[1] == "backward":
 					for _ in range(int(command[2])):
 						self.back()
 						time.sleep(0.5)
@@ -96,7 +106,7 @@ class Car:
 					for _ in range(int(command[2])):
 						self.forward()
 						time.sleep(0.5)
-			elif command[0]=="find":
+			elif command[0]=="bring":
 				self.bring(command[1])
 
 		return True
@@ -124,15 +134,12 @@ class Car:
 		time.sleep(0.7)
 		self.disableMotor()
 
-	def convert(self,angle):
-		return (angle+180)%360-180
 
 	def turnAround(self):
 		current = self.__gyro.yaw
 		self.__wheels.speed = (50, 50)
-		delta = self.convert(self.__gyro.yaw - current)
 		while True:
-			delta = self.convert(self.__gyro.yaw - current)
+			delta = normalizeangle(self.__gyro.yaw - current)
 			#print(delta)
 			if 155<delta:
 				break
