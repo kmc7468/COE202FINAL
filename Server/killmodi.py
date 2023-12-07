@@ -1,3 +1,3 @@
-from car import Car
+import modi
 
-car = Car()
+modi.MODI()
