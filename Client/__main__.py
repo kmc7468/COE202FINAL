@@ -11,7 +11,7 @@ load_dotenv()
 
 PORT = int(os.getenv("PORT"))
 STT_PROMPT_ALICE = os.getenv("STT_PROMPT_ALICE")
-STT_PROMPT_COMMAND = os.getenv("STT_PROMOT_COMMAND")
+STT_PROMPT_COMMAND = os.getenv("STT_PROMPT_COMMAND")
 
 # 리소스 로드
 start = open("./Client/Resources/준비되었어요.wav", "rb") # 호출어 인식이 가능한 상태가 되었을 때 재생
@@ -127,7 +127,7 @@ def worker():
 
 			playstart = False
 
-		callwav = audio.getrecord(1.5, sleep=False)
+		callwav = audio.getrecord(2.0, sleep=False)
 		callkor = audio.stt(callwav, STT_PROMPT_ALICE)
 		if "엘리" in callkor or "앨리" in callkor or "리스" in callkor:
 			playstart = True
