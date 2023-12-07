@@ -80,9 +80,6 @@ yoloupdatethread.start()
 print("YOLOv5가 시작되었습니다.")
 
 # 서버로부터의 수신 시작
-audiolock = Lock()
-carrequest = 0
-
 clt.send("ready", None)
 
 def recver():
@@ -100,18 +97,18 @@ def recver():
 			result = clt.recvstr()
 			print(f"실행 결과: {result}")
 
-			with audiolock:
-				if carrequest == 1:
-					if result == "success":
-						audio.play(success)
-					elif result == "fail":
-						audio.play(fail)
-					elif result == "busy":
-						audio.play(busy)
-					else:
-						raise Exception(f"Unknown result '{result}'")
+			def play():
+				if result == "success":
+					audio.play(success)
+				elif result == "fail":
+					audio.play(fail)
+				elif result == "busy":
+					audio.play(busy)
+				else:
+					raise Exception(f"Unknown result '{result}'")
 
-				carrequest = carrequest - 1
+			playthread = Thread(target=play, daemon=True)
+			playthread.start()
 		elif tag == "vision":
 			clt.send("vision", yolo.getresult().tojson())
 		else:
@@ -125,31 +122,29 @@ def worker():
 	playstart = True
 
 	while True:
-		with audiolock:
-			if playstart:
-				audio.play(start)
+		if playstart:
+			audio.play(start)
 
-				playstart = False
+			playstart = False
 
-			callwav = audio.getrecord(2.0, sleep=False)
-			callkor = audio.stt(callwav, STT_PROMPT_ALICE)
-			if "엘리" in callkor or "앨리" in callkor or "리스" in callkor:
-				playstart = True
-				carrequest = carrequest + 1
-			else:
-				continue
+		callwav = audio.getrecord(1.5, sleep=False)
+		callkor = audio.stt(callwav, STT_PROMPT_ALICE)
+		if "엘리" in callkor or "앨리" in callkor or "리스" in callkor:
+			playstart = True
+		else:
+			continue
 
-			audio.play(ready)
-			cmdwav = audio.getrecord(4.0)
+		audio.play(ready)
+		cmdwav = audio.getrecord(4.0)
 
-			audio.playasync(progress)
-			cmdkor = audio.stt(cmdwav, STT_PROMPT_COMMAND)
-			print(f"인식 결과: {cmdkor}")
+		audio.playasync(progress)
+		cmdkor = audio.stt(cmdwav, STT_PROMPT_COMMAND)
+		print(f"인식 결과: {cmdkor}")
 
-			fml = ass.send(cmdkor)
-			print(f"번역 결과: {fml}")
+		fml = ass.send(cmdkor)
+		print(f"번역 결과: {fml}")
 
-			clt.send("command", fml)
+		clt.send("command", fml)
 
 workthread = Thread(target=worker, daemon=True)
 workthread.start()

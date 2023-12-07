@@ -4,6 +4,9 @@ import threading
 import time
 import typing
 
+def isinvalidcmd(cmd: str) -> bool:
+	return "unknown" in cmd or "others" in cmd
+
 def parsecmd(cmd: str) -> list[list[str]]:
 	lines = cmd.split("\n")
 	return [line.split(" ") for line in lines]
@@ -25,6 +28,9 @@ class CarTest:
 		self.__cvpipe = cvpipe
 
 	def execute(self, cmd: str) -> bool:
+		if isinvalidcmd(cmd):
+			return False
+
 		commands = parsecmd(cmd)
 
 		for command in commands:
@@ -39,7 +45,7 @@ class CarTest:
 				else:
 					print(f"찾지 못했습니다.")
 
-		time.sleep(2)
+		time.sleep(20)
 
 		return True
 
@@ -61,6 +67,9 @@ class Car:
 		self.__cvpipe = cvpipe
 
 	def execute(self, cmd: str) -> bool:
+		if isinvalidcmd(cmd):
+			return False
+
 		commands = parsecmd(cmd)
 
 		for command in commands:
@@ -184,7 +193,7 @@ class Executor:
 		try:
 			result = self.__car.execute(cmd)
 		except:
-			self.__srv.send("command", "error")
+			self.__srv.send("command", "fail")
 
 			raise
 		else:

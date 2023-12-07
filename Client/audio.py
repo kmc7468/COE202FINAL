@@ -44,6 +44,8 @@ class Audio:
 		)
 		self.__pyaudio = pyaudio.PyAudio()
 
+		self.__playlock = threading.Lock()
+
 	def __del__(self):
 		self.stoprecord()
 
@@ -107,20 +109,21 @@ class Audio:
 
 	def play(self, file):
 		with wave.open(file, "rb") as wf:
-			stream = self.__pyaudio.open(
-				format=self.__pyaudio.get_format_from_width(wf.getsampwidth()),
-				channels=wf.getnchannels(),
-				rate=wf.getframerate(),
-				output=True
-			)
+			with self.__playlock:
+				stream = self.__pyaudio.open(
+					format=self.__pyaudio.get_format_from_width(wf.getsampwidth()),
+					channels=wf.getnchannels(),
+					rate=wf.getframerate(),
+					output=True
+				)
 
-			data = wf.readframes(CHUNK_SIZE)
-			while data:
-				stream.write(data)
 				data = wf.readframes(CHUNK_SIZE)
+				while data:
+					stream.write(data)
+					data = wf.readframes(CHUNK_SIZE)
 
-			stream.stop_stream()
-			stream.close()
+				stream.stop_stream()
+				stream.close()
 
 		file.seek(0)
 
