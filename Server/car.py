@@ -163,7 +163,10 @@ class Car:
 		self.__arms.speed = (0,0)
 
 	def bring(self,obj):
-		while not detected(obj, self.__cvresult, self.__condition):
+		while True:
+			result=findobject(self.__cvpipe, obj)
+			if result is not None and 280<result.location[0]<360:
+				break
 			self.rotateLeft()
 
 		forward_time=0
