@@ -92,26 +92,6 @@ class Car:
 
 		return True
 
-	def bring(self,obj):
-		result = detected(obj, self.__cvresult, self.__condition)
-		print(f"탐지 결과 {result}")
-
-		while not detected(obj, self.__cvresult, self.__condition):
-			self.rotateLeft()
-
-		forward_time=0
-		while not self.close():
-			self.forward()
-			forward_time+=1
-
-		self.grab()
-		self.turnAround()
-		for i in range(forward_time):
-			self.forward()
-
-		self.ungrab()
-		self.turnAround()
-
 	def disableMotor(self):
 		self.__wheels.speed = (0, 0)
 
@@ -171,6 +151,7 @@ class Car:
 			if result is not None and 280<result.location[0]<360:
 				break
 			self.rotateLeft()
+			time.sleep(0.5)
 
 		forward_time=0
 		while not self.close():
