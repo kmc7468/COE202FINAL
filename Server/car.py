@@ -124,7 +124,7 @@ class Car:
 		delta = self.convert(self.__gyro.yaw - current)
 		while True:
 			delta = self.convert(self.__gyro.yaw - current)
-			print(delta)
+			#print(delta)
 			if 155<delta:
 				break
 		self.disableMotor()
