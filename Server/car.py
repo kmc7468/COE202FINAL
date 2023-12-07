@@ -96,7 +96,7 @@ class Car:
 		self.__wheels.speed = (0, 0)
 
 	def forward(self):
-		self.__wheels.speed = (-60, 60)
+		self.__wheels.speed = (-70, 60)
 		time.sleep(0.7)
 		self.disableMotor()
 
@@ -148,7 +148,7 @@ class Car:
 	def bring(self,obj):
 		while True:
 			result=findobject(self.__cvpipe, obj)
-			if result is not None and 280<result.location[0]<360:
+			if result is not None and 270<result.location[0]<370:
 				break
 			self.rotateLeft()
 			time.sleep(0.5)
